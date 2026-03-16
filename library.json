@@ -1,0 +1,22 @@
+{
+  "name": "AUI",
+  "version": "0.1.0",
+  "description": "A lightweight, deterministic, event-driven UI and hardware framework for Arduino. AUI provides a modular message-based architecture for building buttons, LEDs, displays, UART interfaces, and custom components without relying on the Arduino loop() model.",
+  "keywords": "gui, framework, ui, event-driven, embedded, message-bus, components, widgets",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kschattenfeld/arduino-aui.git"
+  },
+  "authors": [
+    {
+      "name": "Amber-Sophia Schröck",
+      "email": "ambersophia.schroeck@gmail.com",
+      "url": "https://schattenfeld.de/"
+    }
+  ],
+  "license": "EUPL-1.2",
+  "homepage": "https://github.com/kschattenfeld/arduino-aui",
+  "dependencies": {},
+  "frameworks": "arduino",
+  "platforms": "*"
+}
