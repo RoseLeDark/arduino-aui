@@ -1,6 +1,6 @@
 {
   "name": "AUI",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight, deterministic, event-driven UI and hardware framework for Arduino. AUI provides a modular message-based architecture for building buttons, LEDs, displays, UART interfaces, and custom components without relying on the Arduino loop() model.",
   "keywords": "gui, framework, ui, event-driven, embedded, message-bus, components, widgets",
   "repository": {
