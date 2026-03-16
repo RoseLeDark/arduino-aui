@@ -5,7 +5,7 @@
   "keywords": "gui, framework, ui, event-driven, embedded, message-bus, components, widgets",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kschattenfeld/arduino-aui.git"
+    "url": "https://github.com/RoseLeDark/arduino-aui.git"
   },
   "authors": [
     {
@@ -15,7 +15,7 @@
     }
   ],
   "license": "EUPL-1.2",
-  "homepage": "https://github.com/kschattenfeld/arduino-aui",
+  "homepage": "https://github.com/RoseLeDark/arduino-aui",
   "dependencies": {},
   "frameworks": "arduino",
   "platforms": "*"
