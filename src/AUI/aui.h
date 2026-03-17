@@ -6,6 +6,7 @@
 // https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 #include "aui_element.h"
+#include "aui_gpio.h"
 #include "aui_button.h"
 #include "aui_led.h"
 #include "aui_system.h"

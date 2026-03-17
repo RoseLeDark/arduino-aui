@@ -59,6 +59,12 @@
  */
 #define MSG_LED_SWITCH          3
 
+/* ---------------------------------------------------------------------------
+ * GPIO messages 
+ * -------------------------------------------------------------------------*/
+#define MSG_GPIO_WRITE          4
+
+#define MSG_GPIO_READ           5
 
 /* ---------------------------------------------------------------------------
  * UART / Serial communication messages
@@ -103,3 +109,5 @@
  * Printed only if log level >= DEBUG.
  */
 #define MSG_UART_DEBUG_TEXT     16
+
+

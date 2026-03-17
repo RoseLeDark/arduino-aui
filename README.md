@@ -1,9 +1,9 @@
 
 <h1> AUI — Arduino User Interface Framework</h1>
-<table>
-<tr>
-<td width="200" ><img align="left" src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg"  /> </td>
-<td>
+<table style="border: none" >
+<tr style="border: none">
+<td width="200" style="border: none"><img align="left" src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg"  /> </td>
+<td style="border: none">
 <p>AUI is a lightweight, deterministic, event‑driven UI and hardware framework for Arduino.  
 It provides a modular message‑based architecture that unifies buttons, LEDs, displays, UART interfaces, and custom components under a single, elegant system.
 
@@ -11,11 +11,6 @@ AUI does **not** rely on the traditional `loop()`‑driven Arduino style. Instea
 </tr>
 </table>
 
-<style>
-table, tr, td {
-    border: none;
-}
-</style>
 
 ## ✨ Features
 
