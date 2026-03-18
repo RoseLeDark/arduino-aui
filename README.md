@@ -1,5 +1,6 @@
 
 # AUI — Arduino User Interface Framework
+<<<<<<< HEAD
 <table >
 <tr >
 <td width="200" ><img align="left" src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg"  /> </td>
@@ -10,6 +11,12 @@ It provides a modular, message‑based architecture that unifies digital I/O, se
 </table>
 Unlike traditional Arduino development, AUI does not rely on .ino files, implicit globals, or the loop() pattern.
 Instead, it introduces:
+=======
+<div style="display: flex; align-items: flex-start; gap: 1rem;">
+  <div>
+    <img src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg" alt="AUI Logo" style="max-width: 100px; height: auto;">
+  </div>
+>>>>>>> 2e1790327325b0a487774d706997fd8d0132fb6c
 
 - a central message dispatcher,
 - a strict element lifecycle,
