@@ -1,8 +1,8 @@
 
 # AUI — Arduino User Interface Framework
 <div style="display: flex; align-items: flex-start; gap: 1rem;">
-  <div style="flex: 0 0 180px;">
-    <img src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg" alt="AUI Logo" style="width: 100%; height: auto;">
+  <div>
+    <img src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg" alt="AUI Logo" style="max-width: 200px; height: auto;">
   </div>
 
   <div style="flex: 1;">
@@ -10,17 +10,16 @@
       AUI is a deterministic, event‑driven hardware framework for microcontrollers.
       It provides a modular, message‑based architecture that unifies digital I/O,
       sensors, buses, displays, and communication modules under a single, consistent system.
+      Unlike traditional Arduino development, AUI does not rely on .ino files, implicit globals, or the loop() pattern. Instead, it introduces:
+      <ul>
+      <li> a central message dispatcher,</li>
+      <li> a strict element lifecycle,</li>
+      <li> compile‑time configuration,</li>
+      <li> and a predictable, reproducible execution model.</li>
+      <ul>
     </p>
   </div>
 </div>
-
-Unlike traditional Arduino development, AUI does not rely on .ino files, implicit globals, or the loop() pattern.
-Instead, it introduces:
-
-- a central message dispatcher,
-- a strict element lifecycle,
-- compile‑time configuration,
-- and a predictable, reproducible execution model.
 
 AUI is designed for professional embedded developers, industrial prototyping, and deterministic hardware architectures where clarity, modularity, and reproducibility matter.
 
