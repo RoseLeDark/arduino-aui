@@ -79,7 +79,18 @@ namespace detail {
         using value_type = uint16_t;
     };
 
+    void aui_gpio_pcint_register_pin(uint8_t pinmask, uint8_t pcint_id);
+
+    template <uint8_t TPIN>
+    class aui_base_pin  {
+    public:
+        void set_pcint_enable(uint8_t pcintID) {
+            aui_gpio_pcint_register_pin( TPIN, pcintID);         
+        }
+    };
 }
+
+
 
 /**
  * @class aui_digital_output
@@ -100,7 +111,7 @@ namespace detail {
  *  - Exposes implicit conversion operators for convenience.
  */
 template <uint8_t TPIN>
-class aui_digital_output : public IVisualElement<TPIN> {
+class aui_digital_output : public IVisualElement<TPIN>, public  detail::aui_base_pin<TPIN> {
 public:
     /**
      * @brief Base class providing message dispatch and optional rendering hooks.
@@ -151,8 +162,11 @@ public:
         return 1;
     }
 
+    
     operator bool () { return m_value == 1; }
     operator value_type () {return m_value; }
+
+
 protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
@@ -193,12 +207,15 @@ protected:
      * @brief Cached digital output state (0 or 1).
      */
     value_type m_value;
+
+private:
+
 };
 
 
 
 template <uint8_t TPIN, uint8_t TID = TPIN>
-class aui_digital_input : public IElementWithID<TID>  {
+class aui_digital_input : public IElementWithID<TID>, public  detail::aui_base_pin<TPIN>  {
 public:
     /**
      * @brief Base class providing message dispatcher .
@@ -269,6 +286,78 @@ protected:
     value_type m_value;
 };
 
+
+template <uint8_t TPIN, uint8_t TID = TPIN>
+class aui_digital_input_pullup : public IElementWithID<TID>, public  detail::aui_base_pin<TPIN>  {
+public:
+    /**
+     * @brief Base class providing message dispatcher .
+     */
+    using base_type = IElementWithID<TID> ;
+
+    /**
+     * @brief Value type for digital output (always uint8_t with range 0–1).
+     */
+    using value_type = typename detail::aui_gpio_value_type<aui_gpio_resolution::resolution_1bit>::value_type;
+
+    /**
+     * @brief Constructs a digital output element with an initial LOW state.
+     */
+    aui_digital_input_pullup() : m_value(0) { }
+
+    /**
+     * @brief Returns the minimum representable value (0).
+     */
+    value_type get_min() { return 0; }
+    /**
+     * @brief Returns the maximum representable value (1).
+     */
+    value_type get_max() { return 1; }
+
+    /**
+     * @brief Handles incoming AUI messages for this GPIO element.
+     *
+     * Supported messages:
+     *  - MSG_GPIO_READ  → read a specific digital pin.
+     *
+     * @return 0 if handled, 1 if ignored.
+     */
+    virtual uint8_t handle_message(const IElement* e, const uint8_t msg, void* args, const uint16_t size) override {
+        if(base_type::handle_message(e, msg, args, size) == 0 ) return 0;
+
+        if(msg == MSG_GPIO_READ) {
+            return on_gpio_read(e, static_cast<aui_idble_event*>(args) );
+        }
+        return 1;
+    }
+
+    operator bool () { return m_value == 1; }
+    operator value_type () {return m_value; }
+protected:
+    /**
+     * @brief Initializes the hardware pin as INPUT.
+     */
+    virtual uint8_t on_begin(const IElement* sender, aui_event* event ) override { 
+        pinMode(TPIN, INPUT_PULLUP);
+        m_value = digitalRead(TPIN);
+        return 0; 
+    }
+    /**
+     * @brief read the digital input state.
+     */
+    virtual uint8_t on_gpio_read(const IElement* sender, aui_idble_event* event) { 
+        if(event->get_id() != TID ) return 1;
+
+        m_value = digitalRead(TPIN);
+        event->set_as<value_type>(m_value);
+        return 0; 
+    }
+protected:
+    /**
+     * @brief Cached digital input state (0 or 1).
+     */
+    value_type m_value;
+};
 /**
  * @class aui_analog_output
  * @brief GPIO element representing an analog/PWM output pin.
@@ -286,7 +375,7 @@ protected:
  *  - Calls analogWrite(TPIN, value) for output.
  */
 template <uint8_t TPIN, aui_gpio_resolution TRESOLUTION>
-class aui_analog_output : public IVisualElement<TPIN> {
+class aui_analog_output : public IVisualElement<TPIN>, public  detail::aui_base_pin<TPIN> {
     static_assert(
         TRESOLUTION != aui_gpio_resolution::resolution_1bit,
         "aui_analog_output does not support 1-bit resolution. Use aui_digital_output for digital (1-bit) GPIO modes." );
@@ -385,4 +474,80 @@ protected:
     value_type m_value;
 };
 
+template <uint8_t TPIN, aui_gpio_resolution TRESOLUTION, uint8_t TID = TPIN>
+class aui_analog_input : public IVisualElement<TPIN>, public   detail::aui_base_pin<TPIN> {
+    static_assert(
+        TRESOLUTION != aui_gpio_resolution::resolution_1bit,
+        "aui_analog_input does not support 1-bit resolution. Use aui_digital_output for digital (1-bit) GPIO modes." );
 
+public:
+    /**
+     * @brief Base class providing message dispatch and optional rendering hooks.
+     */
+    using base_type = IVisualElement<TPIN>;
+    /**
+     * @brief Value type determined by the selected resolution.
+     */
+    using value_type = typename detail::aui_gpio_value_type<TRESOLUTION>::type;
+
+    /**
+     * @brief Returns the minimum representable value (0).
+     */
+    value_type get_min() { return 0; }
+    /**
+     * @brief Returns the maximum representable value for the resolution.
+     */
+    value_type get_max() { return (value_type)TRESOLUTION; }
+
+    /**
+     * @brief Handles analog GPIO messages (switch, write, reset).
+     */
+    virtual uint8_t handle_message(const IElement* e, const uint8_t msg, void* args, const uint16_t size) override {
+         if(base_type::handle_message(e, msg, args, size) == 0 ) return 0;
+
+        if(msg == MSG_GPIO_READ) {
+            return on_gpio_write(e, static_cast<aui_idble_event*>(args) );
+        }
+
+        return 1;
+    }
+
+    operator bool () { return m_value == (value_type)TRESOLUTION; }
+    operator value_type () {return m_value; }
+protected:
+    /**
+     * @brief Initializes the hardware pin as OUTPUT.
+     */
+    uint8_t on_begin(const IElement* sender, aui_event* event ) override {  
+        pinMode(TPIN, INPUT);
+        m_value = analoglRead(TPIN);
+
+        if (m_value > (value_type)TRESOLUTION)
+            m_value = (value_type)TRESOLUTION;
+        
+        return 0; 
+    }
+
+
+    /**
+     * @brief Writes a new analog value to the pin, with clamping.
+     */
+    virtual uint8_t on_gpio_read(const IElement* sender, aui_idble_event* event)  { 
+        if(event->get_id() != TPIN) return 1;
+
+        m_value = analoglRead(TPIN);
+
+        if (m_value > (value_type)TRESOLUTION)
+            m_value = (value_type)TRESOLUTION;
+
+        event->set_as<value_type>(m_value);
+        return 0; 
+    }
+
+    
+protected:
+    /**
+     * @brief Cached analog output value.
+     */
+    value_type m_value;
+};

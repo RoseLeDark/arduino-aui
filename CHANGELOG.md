@@ -1,4 +1,26 @@
-## [0.3.12] – 2026‑03‑18
+
+## [0.3.14] – 2026‑03‑18
+
+### Added
+- PCINT support for AVR‑based GPIO elements  
+  - automatic TPIN → PCINT mapping  
+  - per‑group mask handling (PCMSK0/1/2)  
+  - centralized registration via `aui_gpio_pcint_register_pin()`  
+  - unified interrupt dispatch into the AUI event system  
+- `aui_pcint_event`
+  - introduced the new event type aui_pcint_event, carrying id and state  
+  - supports both raw‑pointer message construction and typed payload creation
+  - integrates seamlessly with the AUI message bus and interrupt dispatch
+- `aui_digital_input_pullup<TPIN>`
+  - variant of the digital input element using `INPUT_PULLUP`  
+  - optional PCINT activation via `set_pcint_enable()`  
+
+### **Improved**
+- Consolidated GPIO infrastructure through `aui_base_pin<TPIN>`  
+  - provides explicit `set_pcint_enable()`  
+  - no automatic activation; each class opts in as needed  
+
+## [0.3.13] – 2026‑03‑17
 ### Added
 - New template parameters for `aui_basic_button`:
   - `TPRESS` and `TUPRESS` to define active logic levels (HIGH/LOW)

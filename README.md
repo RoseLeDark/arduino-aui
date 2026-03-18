@@ -175,6 +175,60 @@ The API is stable, and new modules (I²C, SPI, sensors, displays, I²S, CAN, ESP
 
 See [FUTURE.md](https://github.com/RoseLeDark/arduino-aui/blob/main/FUTURE.md) for the roadmap.
 
+## Changelog
+
+
+### [0.3.14] – 2026‑03‑18
+
+#### Added
+- PCINT support for AVR‑based GPIO elements  
+  - automatic TPIN → PCINT mapping  
+  - per‑group mask handling (PCMSK0/1/2)  
+  - centralized registration via `aui_gpio_pcint_register_pin()`  
+  - unified interrupt dispatch into the AUI event system  
+- `aui_pcint_event`
+  - introduced the new event type aui_pcint_event, carrying id and state  
+  - supports both raw‑pointer message construction and typed payload creation
+  - integrates seamlessly with the AUI message bus and interrupt dispatch
+- `aui_digital_input_pullup<TPIN>`
+  - variant of the digital input element using `INPUT_PULLUP`  
+  - optional PCINT activation via `set_pcint_enable()`  
+
+#### **Improved**
+- Consolidated GPIO infrastructure through `aui_base_pin<TPIN>`  
+  - provides explicit `set_pcint_enable()`  
+  - no automatic activation; each class opts in as needed  
+
+### [0.3.13] – 2026‑03‑17
+#### Added
+- New template parameters for `aui_basic_button`:
+  - `TPRESS` and `TUPRESS` to define active logic levels (HIGH/LOW)
+  - Fully hardware‑agnostic press/hold/release detection
+- Press/Hold/Release callbacks (`on_pressed`, `on_released`)
+- Extended click state machine:
+  - deterministic edge detection
+  - universal double‑click logic
+- Global messages:
+  - `MSG_ENABLE` (wake/activate element)
+  - `MSG_DISABLE` (sleep/deactivate element)
+  - `MSG_RESET` (reset internal state machine)
+  - `MSG_UART_WRITE` (send text to `aui_uart` via `aui_uart_event`)
+  - `MSG_UART_READ` (read text from `aui_uart` via `aui_uart_event`)
+- Added `aui_uart_event` structure
+
+#### Changed
+- Fully refactored button logic:
+  - clear separation between edge, hold, and release states
+  - click detection now only triggered on `TUPRESS → TPRESS`
+- Renamed `aui_button` to `aui_basic_button` to simplify specialization
+- Stabilized GPIO handling (no implicit assumptions about pull‑up/pull‑down)
+
+#### Fixed
+- Incorrect press detection when using inverted logic
+- Uninitialized timestamps in the double‑click state machine
+
+See [FUTURE.md](https://github.com/RoseLeDark/arduino-aui/blob/main/CHANGELOG.md) for more.
+
 ##  License
 
 Licensed under the **European Union Public License 1.2 (EUPL‑1.2)**. See [LICENSE.md](https://github.com/RoseLeDark/arduino-aui/blob/main/LICENSE.md)

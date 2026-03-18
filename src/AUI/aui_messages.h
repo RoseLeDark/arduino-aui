@@ -84,3 +84,4 @@
 
 #define MSG_UART_READ     14
 
+#define MSG_PCINT_INTERRUPT 99

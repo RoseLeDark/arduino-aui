@@ -251,3 +251,39 @@ public:
         return aui_uart_event(id, lenghtToRRead);
     }
 };
+
+
+class aui_pcint_event {
+protected:
+    union {
+        struct {
+            uint8_t m_id;  
+            uint8_t m_state;   
+        };
+        void* m_pRaw;         ///< Raw pointer used when receiving events
+    };
+    uint16_t m_iSize;
+
+    aui_pcint_event(void* args, uint16_t size) 
+        : m_pRaw(args), m_iSize(size) { }
+
+    aui_pcint_event(uint16_t id, uint8_t state) 
+        : m_id(id), m_state(state), m_iSize(sizeof(m_pRaw))  { }
+public:
+    constexpr uint8_t get_id() const  { return m_id; }
+    constexpr uint8_t get_state() const  { return m_state; }
+
+    /**
+     * @brief Creates an event from a message handler.
+     */
+    static aui_pcint_event make(void* args, uint16_t size) {
+        return aui_pcint_event(args, size);
+    }
+
+    /**
+     * @brief Creates an event from SendMessage with payload.
+     */
+    static aui_pcint_event make(uint16_t id, uint8_t state) {
+        return aui_pcint_event(id, state);
+    }
+};
