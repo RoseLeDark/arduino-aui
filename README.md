@@ -2,7 +2,7 @@
 # AUI — Arduino User Interface Framework
 <div style="display: flex; align-items: flex-start; gap: 1rem;">
   <div>
-    <img src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg" alt="AUI Logo" style="max-width: 200px; height: auto;">
+    <img src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg" alt="AUI Logo" style="max-width: 100px; height: auto;">
   </div>
 
   <div style="flex: 1;">
