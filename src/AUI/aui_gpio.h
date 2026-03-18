@@ -10,6 +10,7 @@
 
 
 #include "aui_element.h"
+#include "aui_system.h"
 
 /**
  * @enum aui_gpio_resolution
@@ -88,6 +89,35 @@ namespace detail {
             aui_gpio_pcint_register_pin( TPIN, pcintID);         
         }
     };
+
+    #if AUI_CONFIG_EXT_INTERRUPT == 1
+        extern "C" AUI_ISR_ATTR void aui_isr_handler_pin() ;
+    #endif
+    template <uint8_t TPIN>
+    class aui_interrupt_pin {
+    public:
+        uint8_t attache_interrupt(uint8_t mode, void (* handler)() = nullptr ) {
+            int irq = digitalPinToInterrupt(TPIN);
+            if (irq == NOT_AN_INTERRUPT) return 1;
+
+            ::attachInterrupt(irq, handler == nullptr ? aui_isr_handler_pin :  handler, mode);
+            return 0;
+        }
+
+        uint8_t detach_interrupt() {
+            int irq = digitalPinToInterrupt(TPIN);
+            if (irq == NOT_AN_INTERRUPT) return 1;
+
+            ::detachInterrupt(irq);
+            return 0;
+        }
+    private_static: 
+    #if AUI_CONFIG_EXT_INTERRUPT == AUI_CONFIG_OFF
+        static void aui_isr_handler_pin() {
+            auisystem.send_massage<aui_idble_event>(&auisystem, MSG_INTERRUPT, aui_idble_event::make(TPIN));
+        }
+    #endif
+    };
 }
 
 
@@ -111,7 +141,9 @@ namespace detail {
  *  - Exposes implicit conversion operators for convenience.
  */
 template <uint8_t TPIN>
-class aui_digital_output : public IVisualElement<TPIN>, public  detail::aui_base_pin<TPIN> {
+class aui_digital_output : public IVisualElement<TPIN>, 
+                           public  detail::aui_base_pin<TPIN>,
+                           public detail::aui_interrupt_pin<TPIN> {
 public:
     /**
      * @brief Base class providing message dispatch and optional rendering hooks.
@@ -215,7 +247,9 @@ private:
 
 
 template <uint8_t TPIN, uint8_t TID = TPIN>
-class aui_digital_input : public IElementWithID<TID>, public  detail::aui_base_pin<TPIN>  {
+class aui_digital_input : public IElementWithID<TID>, 
+                          public  detail::aui_base_pin<TPIN>,
+                          public detail::aui_interrupt_pin<TPIN>  {
 public:
     /**
      * @brief Base class providing message dispatcher .
@@ -288,7 +322,9 @@ protected:
 
 
 template <uint8_t TPIN, uint8_t TID = TPIN>
-class aui_digital_input_pullup : public IElementWithID<TID>, public  detail::aui_base_pin<TPIN>  {
+class aui_digital_input_pullup : public IElementWithID<TID>, 
+                                 public detail::aui_base_pin<TPIN>,
+                                 public detail::aui_interrupt_pin<TPIN>  {
 public:
     /**
      * @brief Base class providing message dispatcher .
@@ -375,7 +411,12 @@ protected:
  *  - Calls analogWrite(TPIN, value) for output.
  */
 template <uint8_t TPIN, aui_gpio_resolution TRESOLUTION>
-class aui_analog_output : public IVisualElement<TPIN>, public  detail::aui_base_pin<TPIN> {
+class aui_analog_output : public IVisualElement<TPIN>, 
+                          public  detail::aui_base_pin<TPIN>
+                #if AUI_CONFIG_ANALOG_INTERRUPT == 1
+                         , public detail::aui_interrupt_pin<TPIN>
+                #endif
+{
     static_assert(
         TRESOLUTION != aui_gpio_resolution::resolution_1bit,
         "aui_analog_output does not support 1-bit resolution. Use aui_digital_output for digital (1-bit) GPIO modes." );
@@ -475,7 +516,12 @@ protected:
 };
 
 template <uint8_t TPIN, aui_gpio_resolution TRESOLUTION, uint8_t TID = TPIN>
-class aui_analog_input : public IVisualElement<TPIN>, public   detail::aui_base_pin<TPIN> {
+class aui_analog_input : public IVisualElement<TPIN>, 
+                         public   detail::aui_base_pin<TPIN>
+                #if AUI_CONFIG_ANALOG_INTERRUPT == 1
+                         , public detail::aui_interrupt_pin<TPIN>
+                #endif
+{
     static_assert(
         TRESOLUTION != aui_gpio_resolution::resolution_1bit,
         "aui_analog_input does not support 1-bit resolution. Use aui_digital_output for digital (1-bit) GPIO modes." );
@@ -506,7 +552,7 @@ public:
          if(base_type::handle_message(e, msg, args, size) == 0 ) return 0;
 
         if(msg == MSG_GPIO_READ) {
-            return on_gpio_write(e, static_cast<aui_idble_event*>(args) );
+            return on_gpio_read(e, static_cast<aui_idble_event*>(args) );
         }
 
         return 1;
@@ -520,7 +566,7 @@ protected:
      */
     uint8_t on_begin(const IElement* sender, aui_event* event ) override {  
         pinMode(TPIN, INPUT);
-        m_value = analoglRead(TPIN);
+        m_value = analogRead(TPIN);
 
         if (m_value > (value_type)TRESOLUTION)
             m_value = (value_type)TRESOLUTION;
@@ -535,7 +581,7 @@ protected:
     virtual uint8_t on_gpio_read(const IElement* sender, aui_idble_event* event)  { 
         if(event->get_id() != TPIN) return 1;
 
-        m_value = analoglRead(TPIN);
+        m_value = analogRead(TPIN);
 
         if (m_value > (value_type)TRESOLUTION)
             m_value = (value_type)TRESOLUTION;

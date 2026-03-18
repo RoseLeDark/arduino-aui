@@ -25,7 +25,7 @@
  *
  * @tparam TMAX_ELEMENT Maximum number of child elements this board can hold.
  */
-template <uint8_t TMAX_ELEMENT>
+template <uint8_t TMAX_ELEMENT = AUI_SYSTEM_MAX_UI_ELEMENTS>
 class aui_board : public IElement {
 public:
      /**
@@ -58,6 +58,12 @@ public:
      * @return Always returns 0.
      */
     uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size);
+
+    constexpr uint8_t get_max() const {return TMAX_ELEMENT; }
+    constexpr uint8_t get_count() const {return m_count; }
+    constexpr uint8_t get_left() const { return TMAX_ELEMENT - m_count; }
+
+    constexpr bool is_full() const { return m_count == TMAX_ELEMENT; }
 protected:
     
     IElement* m_elements[TMAX_ELEMENT]; ///< Static array of child element pointers.
@@ -77,7 +83,7 @@ template <uint8_t TMAX_ELEMENT>
 uint8_t aui_board<TMAX_ELEMENT>::add_element(IElement* e) {
     uint8_t _ret = 0;
 
-    if (m_count < MAX_ELEMENTS) {
+    if (m_count < TMAX_ELEMENT) {
         m_elements[m_count++] = e;
         _ret = m_count;
     }

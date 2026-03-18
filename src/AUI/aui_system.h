@@ -10,7 +10,6 @@
 #include "aui_messages.h"
 #include "aui_element.h"
 
-#define MAX_ELEMENTS    8
 
 /**
  * @class aui_system
@@ -47,7 +46,7 @@ public:
      * Initializes internal timing state. No setup is performed until
      * on_setup() is called.
      */
-    aui_system() : IElement(),  m_lastUpdate(0) { }
+    aui_system() : IElement(),  m_lastUpdate(0), m_msPerTick(16) { }
 
      /**
      * @brief Executes one system loop iteration.
@@ -98,8 +97,10 @@ public:
      */
     void set_handler(OnMessageHandle handler) { m_msgHandler = handler; }
 
+    inline void set_hz(uint8_t hz) {  m_msPerTick = 1000 / hz;  }
 private:
     uint32_t m_lastUpdate;        ///< Timestamp of last loop execution.
+    uint16_t m_msPerTick;
     OnMessageHandle m_msgHandler; ///< User‑defined message routing function.
 };
 /**

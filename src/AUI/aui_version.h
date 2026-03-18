@@ -15,7 +15,7 @@
 #endif
 
 #ifndef AUI_GIT_COMMENT
-#define AUI_GIT_COMMENT "__GIT__"
+#define AUI_GIT_COMMENT "7da9dda"
 #endif
 
 

@@ -1,7 +1,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "aui/aui_system.h"
+
 #include <Arduino.h>
+#include "aui/aui_config.h"
+#include "aui/aui_system.h"
 
 namespace detail {
 
@@ -12,7 +14,7 @@ static uint8_t __id_map[24] = { 0 };
 static uint8_t __group_inited[3] = {0,0,0}; // per-group init flag
 
 // --- Implementation using Arduino core macros when available ---
-#ifdef ARDUINO
+#if AUI_PLATFORM_AVR == AUI_CONFIG_USED
   #include <Arduino.h>
   static int8_t tpin_to_pcint_index(uint8_t tpin) {
       // digitalPinToPCICRbit returns the PCIE bit index (0..2) or NOT_A_PIN
@@ -93,7 +95,7 @@ static void aui_gpio_pcint_handle_group(uint8_t group) {
             if (id == 0xFF) continue; // nicht registriert
 
             // Event an AUI senden; auisystem ist angenommen vorhanden
-            auisystem.send_massage<aui_pcint_event>(NULL, MSG_PCINT_INTERRUPT, aui_pcint_event::make(id,  (current >> bit) & 1 ));
+            auisystem.send_massage<aui_pcint_event>(&auisystem, MSG_PCINT_INTERRUPT, aui_pcint_event::make(id,  (current >> bit) & 1 ));
         }
     }
 }

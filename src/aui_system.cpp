@@ -14,7 +14,7 @@ aui_system auisystem;
 
 bool aui_system::on_loop() {
     unsigned long now = millis();
-    if (now - m_lastUpdate < 16)
+    if (now - m_lastUpdate < m_msPerTick)
         return true;
 
     m_lastUpdate = now;

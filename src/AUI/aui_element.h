@@ -9,9 +9,12 @@
 
 #include <Arduino.h>
 #include <string.h>
+
+#include "aui_config.h"
 #include "aui_messages.h"
 #include "aui_event.h"
 
+#define private_static private
 /**
  * @class IElement
  * @brief Base class for all AUI components.
