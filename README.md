@@ -177,7 +177,6 @@ See [FUTURE.md](https://github.com/RoseLeDark/arduino-aui/blob/main/FUTURE.md) f
 
 ## Changelog
 
-
 ### [0.3.14] – 2026‑03‑18
 
 #### Added
