@@ -26,8 +26,6 @@
 - Incorrect press detection when using inverted logic
 - Uninitialized timestamps in the double‑click state machine
 
----
-
 ## [0.3.0]
 ### Added
 - `template<uint8_t TID> IElementWithID<TID>`  
@@ -45,14 +43,10 @@
 - Updated `template<uint8_t TID> IVisualElement<TID>`  
   (added template parameter TID for visual elements with IDs)
 
----
-
 ## [0.1.1]
 ### Added
 - Central message system (`IElement`, `aui_system`)
 - Basic implementations of `aui_basic_button` and `aui_led` for clarity
-
----
 
 ## [0.1.0] – Initial Release
 ### Added

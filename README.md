@@ -82,14 +82,14 @@ platform = infineonxmc
 framework = arduino
 
 lib_deps =
-    pba3h11aso/AUI
+    pba3h11aso/AUI ^ 0.3.13
 ```
 
 **Install a specific version**
 ```ini
 
 lib_deps =
-    pba3h11aso/AUI @ 0.1.1
+    pba3h11aso/AUI @0.3.13
 ```
 
 **Install directly from GitHub (development version)**
