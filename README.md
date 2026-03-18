@@ -4,50 +4,102 @@
 <tr style="border: none">
 <td width="200" style="border: none"><img align="left" src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg"  /> </td>
 <td style="border: none">
-<p>AUI is a lightweight, deterministic, event‑driven UI and hardware framework for Arduino.  
-It provides a modular message‑based architecture that unifies buttons, LEDs, displays, UART interfaces, and custom components under a single, elegant system.
-
-AUI does **not** rely on the traditional `loop()`‑driven Arduino style. Instead, it uses a **central message bus**, a **clean element hierarchy**, and **predictable lifecycle events**.</p></td>
+<p>AUI is a deterministic, event‑driven hardware framework for microcontrollers.
+It provides a modular, message‑based architecture that unifies digital I/O, sensors, buses, displays, and communication modules under a single, consistent system.</p></td>
 </tr>
 </table>
+Unlike traditional Arduino development, AUI does not rely on .ino files, implicit globals, or the loop() pattern.
+Instead, it introduces:
 
+- a central message dispatcher,
+- a strict element lifecycle,
+- compile‑time configuration,
+- and a predictable, reproducible execution model.
 
-## ✨ Features
+AUI is designed for professional embedded developers, industrial prototyping, and deterministic hardware architectures where clarity, modularity, and reproducibility matter.
 
-- **Event‑driven architecture**  
-  Every component receives messages through a unified `handle_message()` interface.
+## Key Features
 
-- **Deterministic lifecycle**  
-  - `MSG_ONSETUP` for initialization  
-  - `MSG_ONLOOP` for periodic updates  
-  - `MSG_PAINT` for rendering  
-  - Hardware‑specific messages (UART, LED, etc.)
+### Deterministic, Event‑Driven Architecture
+All components communicate through a unified message interface:
 
-- **Modular element system**  
-  - `IElement` — base class for all components  
-  - `IVisualElement` — UI elements with paint support  
-  - `aui_board` — composite container  
-  - `aui_button` — click + double‑click detection  
-  - `aui_led` — simple digital LED widget  
-  - `aui_serial` — UART integration with log levels
+- `MSG_ONSETUP` — initialization  
+- `MSG_ONLOOP` — periodic update  
+- `MSG_RESET` — reset internal state  
+- Hardware‑specific messages (UART, GPIO, I²C, SPI, etc.)
 
-- **Zero dynamic allocation**  
-  All elements are statically allocated and stored in fixed arrays.
+No hidden magic, no implicit Arduino behavior.
 
-- **Hardware abstraction**  
-  Components like UART, LEDs, buttons, displays, etc. behave like UI elements.
+### Modular Element System
+AUI provides a clean, extensible hierarchy:
 
-## 📦 Installation
+- `IElement` — base class for all hardware modules  
+- `IElementWithID<TID>` — compile‑time element identity  
+- `IVisualElement<TID>` — display/UI elements  
+- `aui_board` — deterministic composite container  
+- `aui_basic_button` — press/hold/release/click/double‑click  
+- `aui_led` — digital output abstraction  
+- `aui_uart` — UART interface with event structures  
 
-Clone the repository into your Arduino `libraries` folder:
+All elements are **statically allocated** and stored in fixed arrays.
 
-```bash
-git clone https://github.com/kschattenfeld/arduino-aui.git
+### Hardware Abstraction Without Runtime Overhead
+AUI treats hardware modules like UI widgets:
+
+- Buttons behave like UI buttons  
+- LEDs behave like UI indicators  
+- UART behaves like a UI text stream  
+- Sensors behave like UI data sources  
+
+Everything follows the same message‑driven pattern.
+
+### Zero Dynamic Allocation
+No `new`, no `malloc`, no fragmentation.  
+All memory is known at compile time.
+
+### Reproducible Behavior
+AUI is designed for:
+
+- deterministic state machines  
+- predictable timing  
+- reproducible hardware behavior  
+- static analysis and debugging  
+
+## Installation
+
+### Installation (PlatformIO Only)
+
+AUI is currently available exclusively through PlatformIO.
+Arduino IDE, Arduino CLI, and CMake‑based toolchains are not supported at this time.
+
+#### Install via PlatformIO Registry
+Add AUI to your platformio.ini:
+
+```ini
+[env:my_build_env]
+platform = infineonxmc
+framework = arduino
+
+lib_deps =
+    pba3h11aso/AUI
 ```
 
-Or install via PlatformIO using `library.json`.
+**Install a specific version**
+```ini
 
-## 🚀 Quickstart
+lib_deps =
+    pba3h11aso/AUI @ 0.1.1
+```
+
+**Install directly from GitHub (development version)**
+```ini
+
+lib_deps =
+    https://github.com/RoseLeDark/arduino-aui.git
+```
+AUI includes a complete library.json manifest for seamless PlatformIO integration.
+
+## Quickstart (Professional Style)
 
 ### 1. Include AUI
 
@@ -55,29 +107,29 @@ Or install via PlatformIO using `library.json`.
 #include <AUI/aui.h>
 ```
 
-### 2. Create a board
+### 2. Define your board and elements
 
 ```cpp
-
-class led_switch_button : public aui_button <2, 250UL> {
+class led_switch_button 
+    : public aui_basic_button<2, HIGH, LOW, 250> 
+{
 public:
-  virtual void on_click() override { 
-    uint8_t led = 1;
-    char* buf = "Button Click";
-
-    auisystem.send_massage(this, MSG_LED_SWITCH, &led, sizeof(led));
-  }
+    uint8_t on_click(const IElement* sender, aui_event* event) override {
+        uint8_t led = 1;
+        auisystem.send_message(this, MSG_LED_SWITCH, &led, sizeof(led));
+        return 0;
+    }
 };
 
 class my_board : public aui_board<8> {
 public:
     void on_create() override {
-      add_element(&m_button);
-      add_element(&m_led);
+        add_element(&m_button);
+        add_element(&m_led);
     }
 private:
     led_switch_button m_button;
-    aui_led<13, 1> m_led;
+    aui_led<13, HIGH> m_led;
 };
 ```
 
@@ -87,49 +139,41 @@ private:
 my_board board;
 
 void setup() {
-  auisystem.set_handler([](IElement* sender, uint8_t msg, void* arg, uint16_t size) {
-        return board.handle_message(sender, msg, arg, size);
-    });
-  auisystem.on_setup();
+    auisystem.set_handler(
+        [](IElement* sender, uint8_t msg, void* arg, uint16_t size) {
+            return board.handle_message(sender, msg, arg, size);
+        }
+    );
+    auisystem.on_setup();
 }
 
 void loop() {
-  auisystem.on_loop();
+    auisystem.on_loop();
 }
 ```
+## Target Audience
 
-## 🧩 Architecture Overview
+AUI is designed for:
 
-```
-+----------------------+
-|      aui_system      |
-|  (message dispatcher)|
-+----------+-----------+
-           |
-           v
-+----------------------+
-|      aui_board       |
-| (composite element)  |
-+----+-----------+-----+
-     |           |
-     v           v
-+--------+   +--------+
-| button |   |   led  |
-+--------+   +--------+
-```
+- Embedded developers  
+- Industrial prototyping  
+- Deterministic hardware systems  
+- Teams that avoid `.ino` and prefer clean C++ architectures  
+- Projects requiring reproducible behavior and modularity  
 
-AUI is intentionally simple:  
-**Messages flow downward, events bubble upward.**
+Not for:
 
+- beginners  
+- Arduino‑style sketches  
+- dynamic memory heavy systems  
 
-## 📝 License
+## Status
 
-This project is licensed under the **European Union Public License 1.2 (EUPL‑1.2)**.  
-See the `LICENSE.md` file for details.
+AUI is under active development.  
+The API is stable, and new modules (I²C, SPI, sensors, displays, I²S, CAN, ESP32 WiFi/BT) are planned.
 
-## 📚 Status
+See [FUTURE.md](https://github.com/RoseLeDark/arduino-aui/main/FUTURE.md) for the roadmap.
 
-AUI is currently in early development (v0.1.0).  
-The API is stable, but additional widgets and hardware modules will be added over time.
+##  License
 
-Contributions, ideas, and discussions are welcome.
+Licensed under the **European Union Public License 1.2 (EUPL‑1.2)**. See [LICENSE.md](https://github.com/RoseLeDark/arduino-aui/main/LICENSE.md)
