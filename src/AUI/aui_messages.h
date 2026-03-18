@@ -84,4 +84,3 @@
 
 #define MSG_UART_READ     14
 
-#define MSG_BUTTON_SET_DOUBLECLICK_TIME     20
