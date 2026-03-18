@@ -172,8 +172,8 @@ Not for:
 AUI is under active development.  
 The API is stable, and new modules (I²C, SPI, sensors, displays, I²S, CAN, ESP32 WiFi/BT) are planned.
 
-See [FUTURE.md](https://github.com/RoseLeDark/arduino-aui/main/FUTURE.md) for the roadmap.
+See [FUTURE.md](https://github.com/RoseLeDark/arduino-aui/blob/main/FUTURE.md) for the roadmap.
 
 ##  License
 
-Licensed under the **European Union Public License 1.2 (EUPL‑1.2)**. See [LICENSE.md](https://github.com/RoseLeDark/arduino-aui/main/LICENSE.md)
+Licensed under the **European Union Public License 1.2 (EUPL‑1.2)**. See [LICENSE.md](https://github.com/RoseLeDark/arduino-aui/blob/main/LICENSE.md)
