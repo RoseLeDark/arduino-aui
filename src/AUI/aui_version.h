@@ -14,9 +14,6 @@
 #define AUI_VERSION_EXTNAME           "dev"
 #endif
 
-#ifndef AUI_GIT_COMMENT
-#define AUI_GIT_COMMENT "7da9dda"
-#endif
 
 
 #define AUI_STRINGIFY2(x) #x
@@ -41,17 +38,4 @@
     AUI_FREEZE_STRING "-" \
     AUI_VERSION_EXTNAME
 
-#if AUI_GIT_COMMENT[0] == '\0'
-    #define AUI_VERSION_STRING_EXT ""
-#else
-    #define AUI_VERSION_STRING_EXT "_" AUI_GIT_COMMENT
-#endif
-
-#define AUI_VERSION_STRING \
-    AUI_STRINGIFY(AUI_VERSION_MAJOR) "." \
-    AUI_STRINGIFY(AUI_VERSION_MINOR) "." \
-    AUI_STRINGIFY(AUI_VERSION_REVISION) \
-    AUI_FREEZE_STRING "-" \
-    AUI_VERSION_EXTNAME \
-    AUI_VERSION_STRING_EXT
 
