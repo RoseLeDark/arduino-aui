@@ -10,9 +10,10 @@
 #include <stdint-gcc.h>
 #include <Arduino.h>
 #include "aui_element.h"
+#include "aui_gpio.h"
 
 /**
- * @class aui_button
+ * @class aui_basic_button
  * @brief Digital input button element with click and double‑click detection.
  *
  * This class implements a deterministic, polling‑based button handler that
@@ -29,9 +30,10 @@
  * @tparam TDOUBLE_CLICK_TIME  Maximum time window (in ms) between two presses
  *                             to be considered a double‑click.
  */
-template <uint8_t pin, uint32_t TDOUBLE_CLICK_TIME = 250 /*ms*/>
-class aui_button : public IVisualElement {
+template <uint8_t pin, uint8_t TPRESS = HIGH, uint8_t TUPRESS = LOW, uint32_t TDOUBLE_CLICK_TIME = 250>
+class aui_basic_button : public aui_digital_input<pin> {
 public:
+    using base_type = aui_digital_input<pin> ;
     /**
      * @struct button_state
      * @brief Stores the current or previous button state.
@@ -63,49 +65,39 @@ public:
      *
      * The pin is not configured until MSG_ONSETUP is received.
      */
-    aui_button() {}
-    /**
-     * @brief Handles AUI messages for setup and periodic updates.
-     *
-     * Supported messages:
-     *  - MSG_ONSETUP: Initializes the pin and internal state.
-     *  - MSG_ONLOOP:  Polls the pin and processes click logic.
-     *
-     * @param sender Pointer to the element that sent the message.
-     * @param msg    Message ID.
-     * @param arg    Optional payload (unused).
-     * @param size   Payload size (unused).
-     * @return Always returns 0.
-     */
-    uint8_t handle_message(IElement* sender, uint8_t msg, void* arg, uint16_t size);
-
+    aui_basic_button() {}
+protected:
      /**
      * @brief Called when a single click is detected.
      *
      * Override this in derived classes to implement custom behavior.
      */
-    virtual void on_click()  { }
+    virtual uint8_t on_click(const IElement* sender, aui_event* event)  { return 0; }
     /**
      * @brief Called when a double click is detected.
      *
      * Override this in derived classes to implement custom behavior.
      */
-    virtual void on_double_click()  { }
+    virtual uint8_t on_double_click(const IElement* sender, aui_event* event)  { return 0; }
 
-private:
+    virtual uint8_t on_pressed(const IElement* sender, aui_event* event)  { return 0; }
+
+    virtual uint8_t on_released(const IElement* sender, aui_event* event)  { return 0; }
+
     /**
      * @brief Initializes the button pin and internal state.
      *
      * Called automatically on MSG_ONSETUP.
      */
-    void begin();
+    uint8_t on_begin(const IElement* sender, aui_event* event ) override;
 
     /**
      * @brief Polls the pin and updates internal state.
      *
      * Called automatically on MSG_ONLOOP.
      */
-    void update();
+    uint8_t on_update(const IElement* sender, aui_event* event) override;
+
 
     /**
      * @brief Checks whether the button was just pressed (rising edge).
@@ -121,7 +113,7 @@ private:
      *  - Checks double‑click window
      *  - Calls OnClick() or OnDoubleClick()
      */
-    void handle_click_logic();
+    uint8_t handle_click_logic(const IElement* sender, aui_event* event);
 
 private:
     button_state        m_state;   ///< Current button state
@@ -133,68 +125,68 @@ private:
 // Implementation
 // ---------------------------------------------------------------------------
 
-template <uint8_t pin, uint32_t TDOUBLE_CLICK_TIME>
-void aui_button<pin, TDOUBLE_CLICK_TIME>::begin() {
-    pinMode(pin, INPUT);
-    uint8_t s = digitalRead(pin);
-    m_state.set_state(s);
+template <uint8_t pin, uint8_t TPRESS , uint8_t TUPRESS, uint32_t TDOUBLE_CLICK_TIME >
+uint8_t aui_basic_button<pin, TPRESS, TUPRESS, TDOUBLE_CLICK_TIME>::on_begin(const IElement* sender, aui_event* event ) {
+    base_type::on_begin(sender,  event );
+    m_state.set_state(base_type::m_value);
     m_prev = m_state;
+    return 0;
 }
 
-template <uint8_t pin, uint32_t TDOUBLE_CLICK_TIME>
-void aui_button<pin, TDOUBLE_CLICK_TIME>::update() {
+template <uint8_t pin, uint8_t TPRESS , uint8_t TUPRESS, uint32_t TDOUBLE_CLICK_TIME >
+uint8_t aui_basic_button<pin, TPRESS, TUPRESS, TDOUBLE_CLICK_TIME>::on_update(const IElement* sender, aui_event* event) {
     uint8_t newState = digitalRead(pin);
     m_prev = m_state;
 
     if (newState != m_state.state) {
         m_state.set_state(newState);
 
-        if (just_pressed()) {
-            handle_click_logic();
+        if (m_prev.state == TUPRESS && m_state.state == TPRESS) {
+            return handle_click_logic(sender, event);
         }
+
+        if(m_prev.state == TPRESS && m_state.state == TPRESS) {
+           return on_pressed(sender, event);
+        }
+
+        if(m_prev.state == TPRESS && m_state.state == TUPRESS) {
+           return on_released(sender, event);
+        }
+
     }
+    return 1;
 }
 
-template <uint8_t pin, uint32_t TDOUBLE_CLICK_TIME>
-bool aui_button<pin, TDOUBLE_CLICK_TIME>::just_pressed() const {
-    return m_prev.state == LOW && m_state.state == HIGH;
-}
-
-template <uint8_t pin, uint32_t TDOUBLE_CLICK_TIME>
-void aui_button<pin, TDOUBLE_CLICK_TIME>::handle_click_logic() {
+template <uint8_t pin, uint8_t TPRESS , uint8_t TUPRESS, uint32_t TDOUBLE_CLICK_TIME >
+uint8_t aui_basic_button<pin, TPRESS, TUPRESS, TDOUBLE_CLICK_TIME>::handle_click_logic(const IElement* sender, aui_event* event) {
     unsigned long now = millis();
+    uint8_t _ret = 1;
 
     if (now - m_double.lastClickTime <= TDOUBLE_CLICK_TIME) {
         m_double.clickCount++;
 
         if (m_double.clickCount == 2) {
-            on_double_click();
+            _ret = on_double_click( sender,  event);
             m_double.clickCount = 0;
             m_double.lastClickTime = 0;
-            return;
         }
     } else {
         m_double.clickCount = 1;
+        _ret = 0;
     }
 
     m_double.lastClickTime = now;
 
     // Einzelklick nur auslösen, wenn kein DoubleClick folgt
     if (m_double.clickCount == 1) {
-        on_click();
+        _ret =  on_click( sender,  event);
     }
+    return _ret;
 }
 
-template <uint8_t pin, uint32_t TDOUBLE_CLICK_TIME>
-uint8_t aui_button<pin, TDOUBLE_CLICK_TIME>::handle_message(IElement* sender, uint8_t msg, void* arg, uint16_t size)  {
-        switch (msg) {
-        case MSG_ONSETUP:
-            begin();
-            break;
 
-        case MSG_ONLOOP:
-            update();
-            break;
-        }
-        return 0;
-    }
+template <uint8_t pin,  uint32_t TDOUBLE_CLICK_TIME = 250>
+using aui_button = aui_basic_button<pin, HIGH, LOW, TDOUBLE_CLICK_TIME>;
+
+template <uint8_t pin,  uint32_t TDOUBLE_CLICK_TIME = 250>
+using aui_button_pullup = aui_basic_button<pin, LOW, HIGH, TDOUBLE_CLICK_TIME>;

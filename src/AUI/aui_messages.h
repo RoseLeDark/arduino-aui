@@ -7,6 +7,8 @@
 
 #pragma once
 
+
+
 /**
  * @file aui_messages.h
  * @brief Defines all message IDs used by the AUI framework.
@@ -40,31 +42,25 @@
  */
 #define MSG_ONSETUP             0
 
-
-/* ---------------------------------------------------------------------------
- * Visual/UI messages
- * -------------------------------------------------------------------------*/
-
-/**
- * @brief Requests a visual element to render itself.
- *
- * Display backends or UI managers trigger this message when repainting.
- */
-#define MSG_PAINT               2
-
-/**
- * @brief Generic LED toggle/switch command.
- *
- * Used by button elements or other controllers to toggle LED widgets.
- */
-#define MSG_LED_SWITCH          3
+#define MSG_ENABLE       2
+#define MSG_DISABLE      3
+#define MSG_RESET        4
 
 /* ---------------------------------------------------------------------------
  * GPIO messages 
  * -------------------------------------------------------------------------*/
-#define MSG_GPIO_WRITE          4
 
-#define MSG_GPIO_READ           5
+
+#define MSG_GPIO_WRITE          5
+
+#define MSG_GPIO_READ           6
+
+#define MSG_PAINT              8
+/**
+ * @brief Generic GPIO toggle/switch command.
+ *
+ */
+#define MSG_GPIO_SWITCH          7
 
 /* ---------------------------------------------------------------------------
  * UART / Serial communication messages
@@ -78,36 +74,14 @@
  */
 #define MSG_UART_RAW_RX         12
 
-/**
- * @brief Informational UART text message.
- *
- * Payload: null‑terminated char string.
- * Printed only if log level >= INFO.
- */
-#define MSG_UART_INFO_TEXT      13
-
-/**
- * @brief Error UART text message.
- *
- * Payload: null‑terminated char string.
- * Printed only if log level >= ERROR.
- */
-#define MSG_UART_ERROR_TEXT     14
-
-/**
- * @brief Verbose UART text message.
- *
- * Payload: null‑terminated char string.
- * Printed only if log level >= VERBOSE.
- */
-#define MSG_UART_VERBOSE_TEXT   15
-
-/**
+/*
  * @brief Debug UART text message.
  *
  * Payload: null‑terminated char string.
- * Printed only if log level >= DEBUG.
  */
-#define MSG_UART_DEBUG_TEXT     16
+#define MSG_UART_WRITE     13
 
 
+#define MSG_UART_READ     14
+
+#define MSG_BUTTON_SET_DOUBLECLICK_TIME     20

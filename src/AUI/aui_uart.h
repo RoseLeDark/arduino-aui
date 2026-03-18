@@ -44,9 +44,11 @@
  * @tparam TBAUD   UART baud rate (default: 9600)
  * @tparam TConfig UART configuration (default: SERIAL_8N1)
  */
-template <HardwareSerial* TSerial, uint32_t TBAUD = 9600, uint32_t TConfig = SERIAL_8N1>
-class aui_serial : public IElement {
+template <HardwareSerial* TSerial, uint8_t TID, uint32_t TBAUD = 9600, uint32_t TConfig = SERIAL_8N1>
+class aui_serial : public IElementWithID<TID> {
 public:
+    using base_type = IElementWithID<TID>;
+
     /**
      * @brief Handles incoming AUI messages.
      *
@@ -63,7 +65,7 @@ public:
      * @param size   Size of the payload.
      * @return Always returns 0 for handled messages, 1 otherwise.
      */
-    uint8_t handle_message(IElement* sender, uint8_t msg, void* arg, uint16_t size) override;
+    uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) override;
 
     /**
      * @brief Reads all available UART bytes and forwards them as raw events.
@@ -77,72 +79,78 @@ public:
     void on_serial_event();
 protected:
     /**
-     * @brief Callback for formatted UART text output.
-     *
-     * This method is invoked when the element receives:
-     *  - MSG_UART_INFO_TEXT
-     *  - MSG_UART_ERROR_TEXT
-     *  - MSG_UART_DEBUG_TEXT
-     *  - MSG_UART_VERBOSE_TEXT
-     *
-     * The default implementation prints a timestamped line to the UART.
-     *
-     * @param what  Category string ("info", "error", "debug", "verbose").
-     * @param stext The text message to output.
+     * @brief Initializes the hardware pin as OUTPUT.
      */
-    virtual void on_text(String what, String stext);
+    uint8_t on_begin(const IElement* sender, aui_event* event ) override {  
+        TSerial->begin(TBAUD, TConfig);
+        return 0; 
+    }
+
+    virtual uint8_t on_write(const IElement* sender, const aui_uart_event* event);
+
+    virtual uint8_t on_read_text(const IElement* sender, aui_uart_event* event) {
+        if(event->get_id() != TID) return 1;
+
+        uint16_t readle = 0;
+        String read = "";
+        char r ;
+        while(event->get_string_lenght() < readle) {
+            while(Serial.available() > 0);
+
+            r = (char)Serial.read();
+            if (r == '\n' || r == '\t' || r == '\r') {
+                break;
+            } else {
+                read += r;
+            }
+            readle++;
+        }
+
+        event->set(read.begin(), read.length());
+
+        return 0;
+    }
 };
 
 // ---------------------------------------------------------------------------
 // Implementation
 // ---------------------------------------------------------------------------
 
-template <HardwareSerial* TSerial, uint32_t TBAUD , uint32_t TConfig >
-void aui_serial<TSerial, TBAUD, TConfig>::on_serial_event() {
+template <HardwareSerial* TSerial, uint8_t TID, uint32_t TBAUD , uint32_t TConfig >
+void aui_serial<TSerial, TID, TBAUD, TConfig>::on_serial_event() {
         while (TSerial->available()) {
         char c = TSerial->read();
         auisystem.send_massage(nullptr, MSG_UART_RAW_RX, &c, 1);
     }
 }
 
-template <HardwareSerial* TSerial, uint32_t TBAUD , uint32_t TConfig >
-void aui_serial<TSerial, TBAUD, TConfig>::on_text(String what, String stext) {
-    String _text = "[ " + String(millis()) + " ] " + what + ": " + stext;
-    TSerial->println(_text);
+template <HardwareSerial* TSerial, uint8_t TID, uint32_t TBAUD , uint32_t TConfig >
+uint8_t aui_serial<TSerial, TID,TBAUD, TConfig>::on_write(const IElement* sender, const aui_uart_event* event) {
+    if(event->get_id() != TID) return 1;
+
+    if ( event->get_loglevel() == AUI_LOG_LEVEL_ERRORS && AUI_LOGLEVEL <= AUI_LOG_LEVEL_ERRORS) {
+        TSerial->println("[ " + String(millis()) + " ] error: " + event->get_as<void>());
+    } else if ( event->get_loglevel() == AUI_LOG_LEVEL_INFOS  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_INFOS) {
+        TSerial->println("[ " + String(millis()) + " ] info: " + event->get_as<void>());
+    } else if ( event->get_loglevel() == AUI_LOG_LEVEL_DEBUG  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_DEBUG) {
+        TSerial->println("[ " + String(millis()) + " ] debug: " + event->get_as<void>());
+    } else if ( event->get_loglevel() == AUI_LOG_LEVEL_VERBOSE  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_VERBOSE) {
+        TSerial->println("[ " + String(millis()) + " ] verbose: " + event->get_as<void>());
+    }
+
+    return 0;
 }
 
-template <HardwareSerial* TSerial, uint32_t TBAUD , uint32_t TConfig >
-uint8_t aui_serial<TSerial, TBAUD, TConfig>::handle_message(IElement* sender, uint8_t msg, void* arg, uint16_t size)  {
+template <HardwareSerial* TSerial, uint8_t TID, uint32_t TBAUD , uint32_t TConfig >
+uint8_t aui_serial<TSerial, TID,TBAUD, TConfig>::handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size)  {
+    if(base_type::handle_message(sender, msg, arg, size) == 0 ) return 0;
 
-        if (msg == MSG_ONSETUP) {
-            TSerial->begin(TBAUD, TConfig);
-            return 0;
-        }
-
-        if (msg == MSG_UART_INFO_TEXT && AUI_LOGLEVEL <= AUI_LOG_LEVEL_INFOS) {
-            const char* text = (const char*)arg;
-            on_text("info", text);
-            return 0;
-        }
-
-        if (msg == MSG_UART_ERROR_TEXT && AUI_LOGLEVEL <= AUI_LOG_LEVEL_ERRORS) {
-            const char* text = (const char*)arg;
-            on_text("error", text);
-            return 0;
-        }
-
-         if (msg == MSG_UART_DEBUG_TEXT && AUI_LOGLEVEL <= AUI_LOG_LEVEL_DEBUG ) {
-                const char* text = (const char*)arg;
-                on_text("Debug", text);
-            return 0;
-        }
-
-        if (msg == MSG_UART_VERBOSE_TEXT && AUI_LOGLEVEL <= AUI_LOG_LEVEL_VERBOSE) { 
-            const char* text = (const char*)arg;
-            on_text("Verbose", text);
-            
-            return 0;
-        }
-
-        return 1;
+    if (msg == MSG_UART_WRITE) { 
+        return on_write(sender, static_cast<aui_uart_event* >(arg) );
     }
+    if(msg == MSG_UART_READ) {
+        return on_read_text(sender, static_cast<aui_uart_event* >(arg) );
+    }
+
+    return 1;
+}

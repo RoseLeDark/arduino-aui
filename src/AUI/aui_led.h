@@ -7,8 +7,9 @@
 
 #pragma once 
 
-#include <stdint-gcc.h>
-#include "aui_element.h"
+#include <stdint.h>
+#include "aui_gpio.h"   
+#include "aui_system.h"
 
 /**
  * @class aui_led
@@ -19,80 +20,28 @@
  *
  * Supported messages:
  *  - MSG_ONSETUP:   Initializes the pin as OUTPUT.
- *  - MSG_PAINT:     Writes the current LED state to the pin.
- *  - MSG_LED_SWITCH: Toggles the LED if the message's LED ID matches TID.
  *
  * The LED does not perform animations, blinking, or timing logic.
  * It is a minimal, deterministic hardware element.
  *
  * @tparam TPIN Digital output pin number.
- * @tparam TID  Logical LED identifier used for MSG_LED_SWITCH routing.
  */
-template <uint8_t TPIN, uint8_t TID>
-class aui_led : public IVisualElement {
+template <uint8_t TPIN>
+class aui_led : public aui_digital_output<TPIN> {
 public:
-    /**
-     * @brief Constructs the LED element with initial OFF state.
-     */
-    aui_led() : m_state(0) { }
+    using value_type = bool;
+    using base_type = aui_digital_output<TPIN>;
 
-    /**
-     * @brief Handles incoming AUI messages.
-     *
-     * @param sender Pointer to the element that sent the message.
-     * @param msg    Message ID.
-     * @param arg    Optional payload (used for MSG_LED_SWITCH).
-     * @param size   Payload size.
-     * @return Always returns 0 for handled messages.
-     */
-    uint8_t handle_message(IElement* sender, uint8_t msg, void* arg, uint16_t size) {
-        if(msg == MSG_ONSETUP) return on_begin();
-        if(msg == MSG_PAINT) return on_paint();
-        if(msg == MSG_LED_SWITCH) return on_led_switch(arg, size);
-
-        return 0;
+    void send_on() {
+        uint8_t value = 1;
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TPIN) );
     }
 
-protected:
-     /**
-     * @brief Initializes the LED pin.
-     *
-     * Called automatically on MSG_ONSETUP.
-     *
-     * @return Always 0.
-     */
-    virtual uint8_t on_begin() { pinMode(TPIN, OUTPUT); return 0; }
-     /**
-     * @brief Writes the current LED state to the pin.
-     *
-     * Called automatically on MSG_PAINT.
-     *
-     * @return Always 0.
-     */
-    virtual uint8_t on_paint() { digitalWrite(TPIN, m_state); return 0; }
-     /**
-     * @brief Handles LED toggle requests.
-     *
-     * If the payload contains a LED ID matching TID, the LED toggles its state.
-     *
-     * Payload:
-     *  - arg: pointer to uint8_t containing the LED ID
-     *  - size: must be >= 1
-     *
-     * @param arg  Pointer to LED ID.
-     * @param size Payload size.
-     * @return 0 on success, 1 if payload is invalid.
-     */
-    virtual uint8_t on_led_switch(void* arg, uint16_t size) {
-        uint8_t *LED = static_cast<uint8_t*>(arg);
-        if(LED == NULL) return 1;
-        
-        if(*LED == TID) m_state = m_state == 0 ? 1 : 0;
-
-        digitalWrite(TPIN, m_state); return 0;
-
-        return 0;
+    void send_off() {
+        uint8_t value = 0;
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TPIN) );
     }
-private:
-     uint8_t m_state; ///< Current LED state (0 = OFF, 1 = ON)
+    void send_switch() {
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TPIN) );
+    }
 };

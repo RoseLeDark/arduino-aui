@@ -7,27 +7,35 @@
 
 #pragma once 
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include <string.h>
 #include "aui_messages.h"
+#include "aui_event.h"
+
 /**
  * @class IElement
- * @brief Base interface for all AUI elements.
+ * @brief Base class for all AUI components.
  *
- * This is the fundamental abstraction in the AUI framework. Every component,
- * whether UI‑related or hardware‑related, derives from IElement.
+ * IElement defines the core message‑driven execution model of the AUI framework.
+ * Every component—whether hardware‑related, logical, or part of the UI—derives
+ * from this class and participates in the unified event dispatch system.
  *
  * Responsibilities:
- *  - Receives messages from the AUI system
- *  - Optionally reacts to setup and loop events
- *  - Provides a minimal lifecycle interface (begin/update)
+ *  - Receives all messages routed through the AUI system.
+ *  - Provides lifecycle hooks for initialization (on_begin) and periodic updates (on_update).
+ *  - Offers a minimal, deterministic interface that derived classes can extend.
  *
- * The default implementation does nothing. Derived classes override only what
- * they need, keeping the system lightweight and deterministic.
+ * Message Handling:
+ *  - handle_message() is the single entry point for all events.
+ *  - MSG_ONSETUP triggers on_begin(), called exactly once during system startup.
+ *  - MSG_ONLOOP triggers on_update(), called periodically by the AUI runtime.
+ *
+ * Derived classes override only the callbacks they need, keeping the system
+ * lightweight, predictable, and easy to reason about.
  */
+
 class IElement {
 public:
-
     /**
      * @brief Handles an incoming AUI message.
      *
@@ -40,8 +48,26 @@ public:
      * @param size   Size of the payload.
      * @return 0 if handled, non‑zero if ignored.
      */
-    virtual uint8_t handle_message(IElement* sender, uint8_t msg, void* arg, uint16_t size) { return 0; }
+    virtual uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) {
+        if (msg == MSG_ONSETUP) { 
+            return on_begin(sender, static_cast<aui_event*>(arg) );  
+        }
+        if (msg == MSG_ONLOOP && m_bEnable == true) { 
+            return on_update(sender, static_cast<aui_event*>(arg)  ); 
+        }
+        if (msg == MSG_DISABLE && m_bEnable == true) {
+            m_bEnable = false;
+            return 0;
+        }
+        if (msg == MSG_ENABLE) {
+            m_bEnable = true;
+            return 0;
+        }
 
+        return 1;
+    }
+
+    constexpr bool is_enable() const { return m_bEnable; }
 protected:
 
     /**
@@ -50,7 +76,7 @@ protected:
      * Called automatically when the element receives MSG_ONSETUP.
      * Derived classes override this to perform hardware or state initialization.
      */
-    virtual void begin() { }
+    virtual uint8_t on_begin(const IElement* sender, aui_event* event) { return 0; }
 
     /**
      * @brief Optional periodic update hook.
@@ -58,30 +84,54 @@ protected:
      * Called automatically when the element receives MSG_ONLOOP.
      * Derived classes override this to implement polling or state updates.
      */
-    virtual void update() { }
+    virtual uint8_t on_update(const IElement* sender, aui_event* event) { return 0; }
+
+protected:
+    bool m_bEnable = true;
 };
 
+template <uint8_t TID>
+class IElementWithID : public IElement {
+public:
+    uint8_t getID() {return TID; }
+};
 
 /**
  * @class IVisualElement
- * @brief Base class for elements that have a visual representation.
+ * @brief Base class for elements with a visual representation.
  *
- * Extends IElement by adding a paint callback. This is used by display‑based
- * widgets such as labels, buttons, sliders, or custom UI components.
+ * IVisualElement extends IElement by adding support for rendering events.
+ * Components that draw to a display—such as labels, buttons, sliders, or
+ * custom widgets—inherit from this class and implement on_paint().
  *
- * Rendering is not performed automatically; the AUI system or a display driver
- * must explicitly trigger paint events.
+ * Rendering Model:
+ *  - Visual updates are triggered explicitly via MSG_PAINT.
+ *  - The AUI system or a display backend is responsible for issuing paint events.
+ *  - on_paint() receives the same event structure as other callbacks, ensuring
+ *    a consistent message‑driven design.
+ *
+ * This separation keeps rendering deterministic and avoids hidden refresh logic.
+ * Visual elements remain passive until the system requests a repaint.
  */
-class IVisualElement : public IElement {
-protected:
+template <uint16_t TID>
+class IVisualElement : public IElementWithID<TID> {
+public:
+    using base_type = IElementWithID<TID>;
 
+    virtual uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) { 
+        if(base_type::handle_message(sender, msg, arg, size) == 0) return 0;
+        if(msg == MSG_PAINT) {
+            return on_paint(sender, static_cast<aui_idble_event*>(arg) );
+        }
+        return 1;
+    }
+    
+protected:
     /**
-     * @brief Optional paint callback.
+     * @brief Optional initialization hook.
      *
-     * Called when the element should render itself. The exact timing and
-     * triggering of paint events depends on the display backend.
-     *
-     * Derived classes override this to draw their visual representation.
+     * Called automatically when the element receives MSG_ONSETUP.
+     * Derived classes override this to perform hardware or state initialization.
      */
-    virtual uint8_t on_paint() { return 0; }
+    virtual uint8_t on_paint(const IElement* sender, aui_idble_event* event) { return 0; }
 };

@@ -1,5 +1,5 @@
 
-<h1> AUI — Arduino User Interface Framework</h1>
+# AUI — Arduino User Interface Framework
 <table style="border: none" >
 <tr style="border: none">
 <td width="200" style="border: none"><img align="left" src="https://github.com/RoseLeDark/arduino-aui/raw/main/logo.svg"  /> </td>

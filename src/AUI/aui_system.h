@@ -38,7 +38,7 @@ public:
      *
      * The handler should return 0 if the message was processed.
      */
-    using OnMessageHandle = uint8_t(*)(IElement* , uint8_t , void* , uint16_t);
+    using OnMessageHandle = uint8_t(*)(const IElement* , const uint8_t , void* , const uint16_t);
 
 
     /**
@@ -84,6 +84,10 @@ public:
      */
     bool send_massage(IElement* sender, uint8_t msg, void* arg, uint16_t size);
 
+    template <class TEVENT>
+    bool send_massage(IElement* sender, uint8_t msg, TEVENT event) {
+        return send_massage(sender, msg, &event, sizeof(TEVENT));
+    }
     /**
      * @brief Registers the global message handler.
      *

@@ -26,7 +26,7 @@
  * @tparam TMAX_ELEMENT Maximum number of child elements this board can hold.
  */
 template <uint8_t TMAX_ELEMENT>
-class aui_board : public IVisualElement {
+class aui_board : public IElement {
 public:
      /**
      * @brief Constructs an empty board with zero registered elements.
@@ -57,14 +57,7 @@ public:
      * @param size   Size of the payload.
      * @return Always returns 0.
      */
-    uint8_t handle_message(IElement* sender, uint8_t msg, void* arg, uint16_t size);
-
-    /**
-     * @brief Called once during MSG_ONSETUP to allow derived boards to register elements.
-     *
-     * Override this method in derived classes to add child elements using add_element().
-     */
-    virtual void on_create() { }
+    uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size);
 protected:
     
     IElement* m_elements[TMAX_ELEMENT]; ///< Static array of child element pointers.
@@ -92,9 +85,7 @@ uint8_t aui_board<TMAX_ELEMENT>::add_element(IElement* e) {
 }
 
 template <uint8_t TMAX_ELEMENT>
-uint8_t aui_board<TMAX_ELEMENT>::handle_message(IElement* sender, uint8_t msg, void* arg, uint16_t size) {
-    if(msg == MSG_ONSETUP ) on_create();
-
+uint8_t aui_board<TMAX_ELEMENT>::handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) {
     for (uint8_t i = 0; i < m_count; i++)
         m_elements[i]->handle_message(sender, msg, arg, size);
 
