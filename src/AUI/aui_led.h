@@ -45,3 +45,75 @@ public:
         auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TPIN) );
     }
 };
+
+template <uint8_t TPIN, aui_gpio_resolution TRESOLUTION = aui_gpio_resolution::resolution_8bit>
+using aui_led_pwm = aui_pwm_output<TPIN, TRESOLUTION>;
+
+
+struct aui_color_rgb {
+    uint8_t r, g, b;
+
+    aui_color_rgb() : r(0), g(0), b(0) { }
+};
+
+template <uint8_t TID, uint8_t TRPIN, uint8_t TGPIN, uint8_t TBPIN>
+class aui_led_rgb : public IElementWithID<TID> {
+public:
+    using base_type = IElementWithID<TID>;
+    using value_type = typename aui_led_pwm<TRPIN>::value_type;
+
+    aui_led_rgb(aui_color_rgb base_color) 
+        :  m_ledRed(base_color.r), m_ledGreen(base_color.g), m_ledBlue(base_color.b), m_prevColor(base_color)  { }
+
+    void send_on()  { 
+        send_color(m_prevColor);  
+    }
+
+    void send_off() { 
+        m_prevColor.r = m_ledRed.get_value();
+        m_prevColor.g = m_ledGreen.get_value();
+        m_prevColor.b = m_ledBlue.get_value();
+
+       send_color(aui_color_rgb() );  
+    }
+
+    void send_color(aui_color_rgb color) {
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&color.r, 1, TRPIN) );
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&color.g, 1, TGPIN) );
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&color.b, 1, TBPIN) );
+    }
+
+    void send_value(value_type value) {
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TRPIN) );
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TGPIN) );
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TBPIN) );
+    }
+    void send_switch() {
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TRPIN) );
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TGPIN) );
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TBPIN) );
+    }
+protected:
+    virtual uint8_t on_disable(const IElement* sender, const uint8_t ID) override {
+        if(ID == TID) {
+            send_off();
+            base_type::set_enable(1); 
+            return 0;
+        }
+        return 1; 
+    }
+    virtual uint8_t on_enable(const IElement* sender, const uint8_t ID) override { 
+         if(ID == TID) {
+            send_on();
+            base_type::set_enable(0); 
+            return 0;
+        }
+        return 1;  
+    }
+protected:
+    aui_led_pwm<TRPIN> m_ledRed;
+    aui_led_pwm<TGPIN> m_ledGreen;
+    aui_led_pwm<TBPIN> m_ledBlue;
+
+    aui_color_rgb m_prevColor;
+};
