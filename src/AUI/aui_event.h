@@ -141,13 +141,14 @@ public:
      */
     constexpr uint16_t get_id() const { return m_id; }
 
+    void set_size(const uint16_t size) { m_rArgsSize = size; }
     /**
      * @brief Returns the argument payload as a typed pointer.
      * @tparam U Type to interpret the payload as
      * @return Pointer to payload cast to U*
      */
     template <typename U>
-    U* get_as() const { return static_cast<U*>(m_rArgs); }
+    U* get_as() { return static_cast<U*>(m_rArgs); }
 
     template <typename U>
     void set_as(U value) { memcpy(m_rArgs, &value, sizeof(U)); }

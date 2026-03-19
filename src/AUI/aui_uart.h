@@ -81,7 +81,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    uint8_t on_begin(const IElement* sender, aui_event* event ) override {  
+    uint8_t on_begin(const IElement* sender, const aui_event* event ) override {  
         TSerial->begin(TBAUD, TConfig);
         return 0; 
     }
