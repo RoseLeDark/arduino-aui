@@ -7,9 +7,11 @@
 #define AUI_CONFIG_OFF                      0
 #define AUI_CONFIG_USED                     1
 
+#ifndef AUI_SYSTEM_MAX_UI_ELEMENTS
 #define AUI_SYSTEM_MAX_UI_ELEMENTS          8
+#endif
 
-
+/// ------------------------------- DO NO EDIT AFTER THIS LINE -------------------------------
 #if defined(__AVR__)
     #define AUI_PLATFORM_AVR AUI_CONFIG_USED
     #define AUI_ISR_ATTR
@@ -34,3 +36,5 @@
 #define AUI_CONFIG_ANALOG_INTERRUPT     AUI_CONFIG_OFF
 #endif
 
+#define AUI_VERSION_10          1
+#define AUI_VERSION_15          0
