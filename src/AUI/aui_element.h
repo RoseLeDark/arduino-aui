@@ -108,8 +108,7 @@ protected:
         return 0; 
     }
     virtual uint8_t on_enable(const IElement* sender, const uint8_t ID)  { 
-        if(ID == TID) base_type::set_enable(0); 
-
+        if(ID == TID) base_type::set_enable(0);
         return 0;  
     }
 };

@@ -16,10 +16,10 @@ uint64_t __global_ticks = 0;
 namespace detail {
     aui_tick_t aui_global_get_ticks() { return __global_ticks; }
 }
-bool aui_system::on_loop() {
+uint8_t aui_system::on_loop() {
     unsigned long now = millis();
     if (now - m_lastUpdate < m_msPerTick)
-        return true;
+        return 0;
 
     m_lastUpdate = now;
 
@@ -28,12 +28,12 @@ bool aui_system::on_loop() {
     if(m_msgHandler != 0) {
         return (m_msgHandler( (IElement*)this, MSG_ONLOOP, &__global_ticks, sizeof(__global_ticks) ) == 0);
     }
-    return false;
+    return 1;
 }
 
-bool aui_system::send_massage(IElement* sender, uint8_t msg, void* arg, uint16_t size) {
+uint8_t aui_system::send_massage(IElement* sender, uint8_t msg, void* arg, uint16_t size) {
     if(m_msgHandler != 0) {
         return (m_msgHandler( sender, msg, arg, size ) == 0);
     }
-    return false;
+    return 1;
 }

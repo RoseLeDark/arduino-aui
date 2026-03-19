@@ -66,7 +66,7 @@ public:
      *
      * @return true if the loop executed successfully.
      */
-    bool on_loop();
+    uint8_t on_loop();
 
     /**
      * @brief Performs system initialization.
@@ -76,7 +76,7 @@ public:
      *
      * @return Always true.
      */
-    bool on_setup() { send_massage(this, MSG_ONSETUP, NULL, 0); return true; }
+    uint8_t on_setup() { send_massage(this, MSG_ONSETUP, NULL, 0); return true; }
 
     /**
      * @brief Sends a message into the AUI message bus.
@@ -91,10 +91,10 @@ public:
      * @param size   Size of the payload.
      * @return true if the message was forwarded.
      */
-    bool send_massage(IElement* sender, uint8_t msg, void* arg, uint16_t size);
+    uint8_t send_massage(IElement* sender, uint8_t msg, void* arg, uint16_t size);
 
     template <class TEVENT>
-    bool send_massage(IElement* sender, uint8_t msg, TEVENT event) {
+    uint8_t send_massage(IElement* sender, uint8_t msg, TEVENT event) {
         return send_massage(sender, msg, &event, sizeof(TEVENT));
     }
     /**

@@ -11,6 +11,13 @@
 #define AUI_SYSTEM_MAX_UI_ELEMENTS          8
 #endif
 
+#define AUI_CONFIG_TIMER_1000HZ     AUI_CONFIG_OFF
+#define AUI_CONFIG_TIMER_500HZ      AUI_CONFIG_OFF
+#define AUI_CONFIG_TIMER_100HZ      AUI_CONFIG_USED
+#define AUI_CONFIG_TIMER_50HZ       AUI_CONFIG_OFF
+#define AUI_CONFIG_TIMER_20HZ       AUI_CONFIG_OFF
+
+
 /// ------------------------------- DO NO EDIT AFTER THIS LINE -------------------------------
 #if defined(__AVR__)
     #define AUI_PLATFORM_AVR AUI_CONFIG_USED
@@ -35,6 +42,23 @@
 #define AUI_CONFIG_EXT_INTERRUPT        AUI_CONFIG_OFF
 #define AUI_CONFIG_ANALOG_INTERRUPT     AUI_CONFIG_OFF
 #endif
+
+
+#if AUI_CONFIG_TIMER_1000HZ == AUI_CONFIG_USED
+    #define AUI_CONFIG_TIMER_HZ aui_timer_hz::Hz1000
+#elif AUI_CONFIG_TIMER_500HZ == AUI_CONFIG_USED
+    #define AUI_CONFIG_TIMER_HZ aui_timer_hz::Hz500
+#elif AUI_CONFIG_TIMER_100HZ == AUI_CONFIG_USED
+    #define AUI_CONFIG_TIMER_HZ aui_timer_hz::Hz100
+#elif AUI_CONFIG_TIMER_50HZ == AUI_CONFIG_USED
+    #define AUI_CONFIG_TIMER_HZ aui_timer_hz::Hz50
+#elif AUI_CONFIG_TIMER_20HZ == AUI_CONFIG_USED
+    #define AUI_CONFIG_TIMER_HZ aui_timer_hz::Hz20
+#else
+    #define AUI_CONFIG_NOTIMER_T AUI_CONFIG_ON
+#endif
+
+#define AUI_WEAK __attribute__((weak))
 
 #define AUI_VERSION_10          1
 #define AUI_VERSION_15          0
