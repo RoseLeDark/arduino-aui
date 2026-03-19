@@ -11,7 +11,11 @@
 
 aui_system auisystem;
 
+uint64_t __global_ticks = 0;
 
+namespace detail {
+    aui_tick_t aui_global_get_ticks() { return __global_ticks; }
+}
 bool aui_system::on_loop() {
     unsigned long now = millis();
     if (now - m_lastUpdate < m_msPerTick)
@@ -19,8 +23,10 @@ bool aui_system::on_loop() {
 
     m_lastUpdate = now;
 
+    __global_ticks++;
+
     if(m_msgHandler != 0) {
-        return (m_msgHandler( (IElement*)this, MSG_ONLOOP, NULL, 0 ) == 0);
+        return (m_msgHandler( (IElement*)this, MSG_ONLOOP, &__global_ticks, sizeof(__global_ticks) ) == 0);
     }
     return false;
 }
