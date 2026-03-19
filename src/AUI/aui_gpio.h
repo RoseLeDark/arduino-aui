@@ -57,6 +57,7 @@ namespace detail {
     template <>
     struct aui_gpio_value_type<aui_gpio_resolution::resolution_1bit> {
         using value_type = uint8_t;
+        static  const uint8_t resolution = 1;
     };
     /**
      * @brief Maps 8‑bit resolution to uint8_t.
@@ -64,6 +65,7 @@ namespace detail {
     template <>
     struct aui_gpio_value_type<aui_gpio_resolution::resolution_8bit> {
         using value_type = uint8_t;
+        static const uint8_t resolution = 8;
     };
     /**
      * @brief Maps 10‑bit resolution to uint16_t.
@@ -71,6 +73,7 @@ namespace detail {
     template <>
     struct aui_gpio_value_type<aui_gpio_resolution::resolution_10bit> {
         using value_type = uint16_t;
+        static const uint8_t resolution = 10;
     };
     /**
      * @brief Maps 12‑bit resolution to uint16_t.
@@ -78,9 +81,11 @@ namespace detail {
     template <>
     struct aui_gpio_value_type<aui_gpio_resolution::resolution_12bit> {
         using value_type = uint16_t;
+        static const uint8_t resolution = 12;
     };
 
     void aui_gpio_pcint_register_pin(uint8_t pinmask, uint8_t pcint_id);
+    uint8_t aui_gpio_analog_disable(uint8_t pin, uint8_t mode);
 
     template <uint8_t TPIN>
     class aui_base_pin  {
@@ -182,13 +187,15 @@ public:
     virtual uint8_t handle_message(const IElement* e, const uint8_t msg, void* args, const uint16_t size) override {
          if(base_type::handle_message(e, msg, args, size) == 0 ) return 0;
 
-        if(msg == MSG_GPIO_SWITCH) {
+        if(msg == MSG_GPIO_SWITCH && base_type::is_enable() == 0 ) {
             return on_gpio_switch(e, static_cast<aui_idble_event*>(args));
         }
-        if(msg == MSG_GPIO_WRITE) {
+        if(msg == MSG_GPIO_WRITE && base_type::is_enable() == 0 ) {
             return on_gpio_write(e, static_cast<aui_idble_event*>(args) );
         }
         if (msg == MSG_RESET ) { 
+            base_type::set_enable(0);
+            
             return on_reset(e, static_cast<aui_idble_event*>(args)  ); 
         }
         return 1;
@@ -203,7 +210,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    uint8_t on_begin(const IElement* sender, aui_event* event ) override { 
+    uint8_t on_begin(const IElement* sender, const aui_event* event ) override { 
         
         pinMode(TPIN, OUTPUT);
         return 0; 
@@ -298,7 +305,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as INPUT.
      */
-    virtual uint8_t on_begin(const IElement* sender, aui_event* event ) override { 
+    virtual uint8_t on_begin(const IElement* sender, const aui_event* event ) override { 
         pinMode(TPIN, INPUT);
         m_value = digitalRead(TPIN);
         return 0; 
@@ -373,7 +380,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as INPUT.
      */
-    virtual uint8_t on_begin(const IElement* sender, aui_event* event ) override { 
+    virtual uint8_t on_begin(const IElement* sender, const  aui_event* event ) override { 
         pinMode(TPIN, INPUT_PULLUP);
         m_value = digitalRead(TPIN);
         return 0; 
@@ -431,15 +438,21 @@ public:
      */
     using value_type = typename detail::aui_gpio_value_type<TRESOLUTION>::type;
 
+    aui_analog_output() 
+        : m_value(0) { }
+
+    aui_analog_output(value_type value) 
+        : m_value(value) { }
     /**
      * @brief Returns the minimum representable value (0).
      */
-    value_type get_min() { return false; }
+    constexpr value_type get_min() { return 0; }
     /**
      * @brief Returns the maximum representable value for the resolution.
      */
-    value_type get_max() { return (value_type)TRESOLUTION; }
-
+    constexpr value_type get_max() { return (value_type)TRESOLUTION; }
+    
+    constexpr value_type get_value() { return m_value; }
     /**
      * @brief Handles analog GPIO messages (switch, write, reset).
      */
@@ -458,14 +471,29 @@ public:
         return 1;
     }
 
+     /**
+     * @brief Set INPUT_DISABLE 
+     * @param off: 1-> on and 0 -> off
+     */
+    uint8_t set_input_disable(uint8_t state ) {
+        return detail::aui_gpio_analog_disable(TPIN, state);
+    }
+
     operator bool () { return m_value == (value_type)TRESOLUTION; }
     operator value_type () {return m_value; }
 protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    uint8_t on_begin(const IElement* sender, aui_event* event ) override {  
+    uint8_t on_begin(const IElement* sender,const  aui_event* event ) override {  
         pinMode(TPIN, OUTPUT);
+
+        analogWriteResolution(detail::aui_gpio_value_type<TRESOLUTION>::resolution);
+        if (m_value > (value_type)TRESOLUTION)
+            m_value = (value_type)TRESOLUTION; 
+
+        analogWrite(TPIN, m_value); 
+        
         return 0; 
     }
     /**
@@ -557,6 +585,13 @@ public:
 
         return 1;
     }
+    /**
+     * @brief Set INPUT_DISABLE 
+     * @param off: 1-> on and 0 -> off
+     */
+    uint8_t set_input_disable(uint8_t state ) {
+        return detail::aui_gpio_analog_disable(TPIN, state);
+    }
 
     operator bool () { return m_value == (value_type)TRESOLUTION; }
     operator value_type () {return m_value; }
@@ -564,8 +599,10 @@ protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    uint8_t on_begin(const IElement* sender, aui_event* event ) override {  
+    uint8_t on_begin(const IElement* sender, const  aui_event* event ) override {  
         pinMode(TPIN, INPUT);
+
+        analogReadResolution(detail::aui_gpio_value_type<TRESOLUTION>::resolution);
         m_value = analogRead(TPIN);
 
         if (m_value > (value_type)TRESOLUTION)
@@ -596,4 +633,31 @@ protected:
      * @brief Cached analog output value.
      */
     value_type m_value;
+};
+
+
+template <uint8_t TPIN, aui_gpio_resolution TRESOLUTION = aui_gpio_resolution::resolution_8bit>
+class aui_pwm_output : public aui_analog_output<TPIN, TRESOLUTION> {
+public:
+    using base_type = aui_analog_output<TPIN, TRESOLUTION> ;
+    using value_type = typename base_type::value_type;
+
+    aui_pwm_output(value_type value)
+        : base_type(value) { }
+
+    void send_value(value_type value) {
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TPIN) );
+    }
+    void send_on() {
+        uint8_t value = 255;
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TPIN) );
+    }
+
+    void send_off() {
+        uint8_t value = 0;
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TPIN) );
+    }
+    void send_switch() {
+        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TPIN) );
+    }
 };
