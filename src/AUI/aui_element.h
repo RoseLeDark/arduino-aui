@@ -55,22 +55,14 @@ public:
         if (msg == MSG_ONSETUP) { 
             return on_begin(sender, static_cast<aui_event*>(arg) );  
         }
-        if (msg == MSG_ONLOOP && m_bEnable == true) { 
-            return on_update(sender, static_cast<aui_event*>(arg)  ); 
+        if (msg == MSG_ONLOOP && m_bEnable == 0) { 
+            return on_update(sender, *static_cast<uint64_t*>(arg)  ); 
         }
-        if (msg == MSG_DISABLE && m_bEnable == true) {
-            m_bEnable = false;
-            return 0;
-        }
-        if (msg == MSG_ENABLE) {
-            m_bEnable = true;
-            return 0;
-        }
-
         return 1;
     }
 
-    constexpr bool is_enable() const { return m_bEnable; }
+    inline uint8_t is_enable() const { return m_bEnable; }
+    inline void set_enable(uint8_t value) { m_bEnable = value; }
 protected:
 
     /**
@@ -79,7 +71,7 @@ protected:
      * Called automatically when the element receives MSG_ONSETUP.
      * Derived classes override this to perform hardware or state initialization.
      */
-    virtual uint8_t on_begin(const IElement* sender, aui_event* event) { return 0; }
+    virtual uint8_t on_begin(const IElement* sender, const aui_event* event) { return 0; }
 
     /**
      * @brief Optional periodic update hook.
@@ -87,16 +79,39 @@ protected:
      * Called automatically when the element receives MSG_ONLOOP.
      * Derived classes override this to implement polling or state updates.
      */
-    virtual uint8_t on_update(const IElement* sender, aui_event* event) { return 0; }
-
+    virtual uint8_t on_update(const IElement* sender, const uint64_t ticks) { return 0; }
 protected:
-    bool m_bEnable = true;
+    uint8_t m_bEnable = 0 ; // 1 = false, 0 = true
 };
 
 template <uint8_t TID>
 class IElementWithID : public IElement {
 public:
+    using base_type = IElement;
+
+    virtual uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) { 
+        if(base_type::handle_message(sender, msg, arg, size) == 0) return 0;
+
+        if (msg == MSG_DISABLE && base_type::m_bEnable == 0) {
+            return on_disable(sender, *static_cast<uint8_t*>(arg));
+        }
+        if (msg == MSG_ENABLE) {
+            return on_enable(sender, *static_cast<uint8_t*>(arg));
+        }
+        return 1;
+    }
+
     uint8_t getID() {return TID; }
+protected:
+    virtual uint8_t on_disable(const IElement* sender, const uint8_t ID)  {
+        if(ID == TID) base_type::set_enable(1); 
+        return 0; 
+    }
+    virtual uint8_t on_enable(const IElement* sender, const uint8_t ID)  { 
+        if(ID == TID) base_type::set_enable(0); 
+
+        return 0;  
+    }
 };
 
 /**
@@ -123,7 +138,7 @@ public:
 
     virtual uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) { 
         if(base_type::handle_message(sender, msg, arg, size) == 0) return 0;
-        if(msg == MSG_PAINT) {
+        if(msg == MSG_PAINT && base_type::m_bEnable == 0) {
             return on_paint(sender, static_cast<aui_idble_event*>(arg) );
         }
         return 1;
@@ -137,4 +152,6 @@ protected:
      * Derived classes override this to perform hardware or state initialization.
      */
     virtual uint8_t on_paint(const IElement* sender, aui_idble_event* event) { return 0; }
+
+    
 };
