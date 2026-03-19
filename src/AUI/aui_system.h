@@ -10,6 +10,16 @@
 #include "aui_messages.h"
 #include "aui_element.h"
 
+using aui_tick_t = uint64_t;
+
+namespace detail {
+    aui_tick_t aui_global_get_ticks();
+}
+
+#define AUI_TICKS_NOW       (detail::aui_global_get_ticks())
+#define AUI_BASE_MS         1000ULL
+#define AUI_MS_PER_TICK(hz)  (AUI_BASE_MS / (hz))
+
 
 /**
  * @class aui_system
@@ -97,7 +107,8 @@ public:
      */
     void set_handler(OnMessageHandle handler) { m_msgHandler = handler; }
 
-    inline void set_hz(uint8_t hz) {  m_msPerTick = 1000 / hz;  }
+    inline void set_hz(uint8_t hz) {  m_msPerTick = AUI_MS_PER_TICK(hz);  }
+
 private:
     uint32_t m_lastUpdate;        ///< Timestamp of last loop execution.
     uint16_t m_msPerTick;
