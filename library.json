@@ -1,8 +1,20 @@
 {
   "name": "AUI",
-  "version": "0.3.14",
-  "description": "A lightweight, deterministic, event-driven UI and hardware framework for Arduino. AUI provides a modular message-based architecture for building buttons, LEDs, displays, UART interfaces, and custom components without relying on the Arduino loop() model.",
-  "keywords": "gui, framework, ui, event-driven, embedded, message-bus, components, widgets",
+  "version": "0.3.80",
+  "description": "A deterministic, event-driven embedded framework for Arduino. AUI provides a modular message-bus architecture for hardware elements such as buttons, LEDs, sensors, buses, and custom components. Inspired by UI design patterns, but built for real hardware: no loop(), no dynamic allocation, fully reproducible state machines.",
+  "keywords": [
+    "framework",
+    "event-driven",
+    "embedded",
+    "message-bus",
+    "gpio",
+    "i2c",
+    "uart",
+    "timer",
+    "deterministic",
+    "no-heap",
+    "ui-pattern"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/RoseLeDark/arduino-aui.git"
@@ -18,5 +30,14 @@
   "homepage": "https://github.com/RoseLeDark/arduino-aui",
   "dependencies": {},
   "frameworks": "arduino",
-  "platforms": "*"
+  "platforms": "*",
+  "examples": [
+    {
+      "name": "Basic Example",
+      "base": "examples",
+      "files": [
+        "basic_example.cpp"
+      ]
+    }
+  ]
 }

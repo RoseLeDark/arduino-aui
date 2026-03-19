@@ -1,5 +1,118 @@
+## [0.3.80] – 2026‑03‑19
 
-## [0.3.14] – 2026‑03‑18
+### Added
+- Added set_pcint_enable() to aui_base_pin<TPIN>
+  - provides a unified API for enabling PCINT on any GPIO‑based element
+  - internally forwards to aui_gpio_pcint_register_pin(TPIN, pcintID)
+  - removes duplicated PCINT logic from individual GPIO classes
+  - ensures consistent PCINT activation across all digital input types
+
+- Cross‑platform soft‑lock system (`aui_soft_lock`)
+  - supports AVR, ESP32, SAMD, and STM32  
+  - unified ISR‑detection via `aui_in_isr()`  
+  - platform‑specific implementations:  
+    - AVR: checks I‑bit in SREG  
+    - ESP32: uses FreeRTOS `xPortInIsrContext()`  
+    - ARM Cortex‑M: checks `SCB->ICSR` VECTACTIVE  
+  - fallback implementation for non‑RTOS/non‑MCU environments  
+
+- RAII lock guard (`aui_lock_guard<TLOCK, TID>`)  
+  - deterministic lock/unlock behavior  
+  - explicit owner‑ID validation  
+  - zero‑overhead in optimized builds  
+
+- `AUI_LOCKED()` macro  
+  - concise lock‑scope syntax without requiring C++17  
+  - integrates cleanly with the soft‑lock system  
+
+- Introduced `aui_devices.h` as a unified alias layer for common hardware elements  
+
+  > **Note:** All device aliases in `aui_devices.h` are zero‑overhead type aliases only.  
+  > They do not implement any behavior. Users must derive their own classes and  
+  > override event handlers (e.g., `on_click`, `on_change`) to define device logic.
+
+  - semantic aliases for button‑based sensors:  
+    - `aui_limit`, `aui_reed`, `aui_switch`, `aui_endstop`  
+    - pull‑up variants: `aui_limit_pullup`, `aui_reed_pullup`, `aui_switch_pullup`, `aui_endstop_pullup`  
+  - digital‑input aliases for typical sensor modules:  
+    - `aui_motion` (PIR), `aui_flame`, `aui_rain`, `aui_hall`,  
+      `aui_lightgate`, `aui_vibration`, `aui_knock`, `aui_gas`  
+  - digital‑output aliases for actuator modules:  
+    - `aui_relay`, `aui_ssr`, `aui_mosfet`, `aui_transistor`,  
+      `aui_valve`, `aui_pump`, `aui_laser`, `aui_trigger`  
+
+- Unified enable/disable handling across all GPIO‑based elements  
+  (`aui_digital_input`, `aui_digital_input_pullup`,  
+   `aui_digital_output`, `aui_analog_input`, `aui_analog_output`)
+  - GPIO elements now ignore `MSG_GPIO_SWITCH` and `MSG_GPIO_WRITE` when disabled  
+  - prevents unintended state changes while inactive  
+  - ensures consistent behavior across all input/output types  
+
+### I²C Framework
+- Introduced `aui_i2c<TID, TModule>` as a new I²C master element  
+  - fully message‑driven (`MSG_I2C_WRITE`, `MSG_I2C_READ`)  
+  - supports arbitrary I²C modules via template parameter  
+  - zero‑overhead integration with the AUI message bus  
+
+- Added `aui_i2c_test_module<TADDR>` as a reference implementation  
+  - basic read/write operations for AVR TWI hardware  
+  - template for device‑specific modules (e.g., MPU6050, OLED, sensors)  
+
+- Added `aui_i2c_slave<TID, TADDR, TSIZE>`  
+  - interrupt‑driven I²C slave receiver  
+  - static buffer with ready‑flag mechanism  
+  - dispatches `MSG_I2C_INTRT` when a full packet is received  
+  - integrates cleanly with `on_update()` for periodic polling  
+
+- Added AVR‑specific low‑level I²C macros  
+  - `aui_i2c_begin()`, `aui_i2c_start()`, `aui_i2c_stop()`  
+  - `aui_i2c_write_byte()`, `aui_i2c_read_byte_ack()`, `aui_i2c_read_byte_nack()`  
+  - `aui_i2c_status()` for TWI status checking  
+  - deterministic, blocking I²C operations without overhead  
+
+### Modified
+- Reworked `aui_system::on_loop()`  
+  - replaced `NULL` loop argument with a global tick counter (`__global_ticks`)  
+  - deterministic tick progression independent of message handler  
+  - added `detail::aui_global_get_ticks()` for unified tick access  
+
+- Updated message dispatch for `MSG_ONLOOP`  
+  - now forwards the current tick value  
+  - enables time‑aware components without boilerplate  
+
+- Unified I²C message handling with enable/disable semantics  
+  - `MSG_I2C_WRITE` and `MSG_I2C_READ` only processed when enabled  
+
+- Standardized event forwarding using `aui_idble_event::make()`  
+  - simplifies payload handling for variable‑length I²C transfers  
+  - ensures consistent ID‑based routing  
+
+### Improved
+- Timer infrastructure  
+  - weak callback hooks (`aui_timer0_callback`, `aui_timer_callback`)  
+  - safe hook into Arduino’s `TIMER0_OVF_vect` without breaking `millis()`  
+  - configurable Timer1 CTC dispatch (`TIMER1_COMPA_vect`)  
+  - compile‑time frequency selection via `AUI_CONFIG_TIMER_*`  
+  - deterministic prescaler/OCR configuration  
+
+- `MSG_RESET` now forces the element back into the enabled state (`set_enable(0)`)  
+  - guarantees deterministic reset behavior  
+  - avoids half‑disabled states  
+
+- Centralized enable‑state logic  
+  - reduces duplicated checks  
+  - predictable behavior across all GPIO elements  
+
+- Prepared the I²C subsystem for modular device extensions  
+  - supports nested templates such as `aui_i2c<23, MPU6050<0x68>>`  
+  - consistent module design matching `aui_i2c_test_module`  
+
+- Enhanced ISR‑driven slave handling  
+  - static buffer + ready‑flag ensure deterministic packet reception  
+  - avoids dynamic allocation and race conditions  
+  - integrates seamlessly with the AUI event system  
+
+## [0.3.14] 
 
 ### Added
 - PCINT support for AVR‑based GPIO elements  
