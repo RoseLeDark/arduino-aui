@@ -4,7 +4,7 @@
 - Added simple/extended event macros  
   - `sAuiSendEvent` (simple): send ID‑only events without payload  
   - `eAuiSendEvent` (extended): send typed payload events  
-  - both macros generate zero‑overhead `aui_event_ex<T>` instances  
+  - both macros generate zero‑overhead `aui_event<T>` instances  
   - replaces multiple legacy factory functions (`make()`) from old event classes
 
 - Added `aui_arch.h`
@@ -26,13 +26,13 @@
 
 
 ### Modified
-- Reworked the entire event system (`aui_event`)
-  - replaced multiple specialized event classes (`aui_event`, `aui_idble_event`,  
+- Reworked the entire event system (`aui_event (new)`)
+  - replaced multiple specialized event classes (`aui_event (old)`, `aui_idble_event`,  
     `aui_uart_event`, `aui_pcint_event`) with a unified template‑based design  
-  - introduced `aui_event_ex<TPAYLOAD>` as the new generic event container  
+  - introduced `aui_event<TPAYLOAD>` as the new generic event container  
     - supports typed payloads with zero‑overhead access  
     - unified ID‑based routing for all event types  
-  - added specialization `aui_event_ex<void*>` for raw pointer payloads  
+  - added specialization `aui_event<void*>` for raw pointer payloads  
     - replaces previous raw‑event handling logic  
     - provides `get_as<T>()` and `set_as<T>()` for typed reinterpretation  
   - significantly reduced code size by removing redundant event classes  
@@ -126,7 +126,7 @@
 - Unified I²C message handling with enable/disable semantics  
   - `MSG_I2C_WRITE` and `MSG_I2C_READ` only processed when enabled  
 
-- Standardized event forwarding using `aui_event_ex<aui_idble_payload>::make()`  
+- Standardized event forwarding using `aui_event<aui_idble_payload>::make()`  
   - simplifies payload handling for variable‑length I²C transfers  
   - ensures consistent ID‑based routing  
 
@@ -216,8 +216,8 @@
 - Board container (`aui_board`) now inherits from  
   `template<uint8_t TID> IElementWithID<TID>`
 - Added new event types to the central message system  
-  (`aui_event_ex<aui_idble_payload>`, `aui_event`) and updated message handler to  
-  `on_MESSAGE(IElement* e, aui_event_ex<aui_idble_payload>* event)`
+  (`aui_event<aui_idble_payload>`, `aui_event`) and updated message handler to  
+  `on_MESSAGE(IElement* e, aui_event<aui_idble_payload>* event)`
 - Updated `template<uint8_t TID> IVisualElement<TID>`  
   (added template parameter TID for visual elements with IDs)
 

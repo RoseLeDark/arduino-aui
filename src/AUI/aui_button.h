@@ -89,7 +89,7 @@ protected:
      *
      * Called automatically on MSG_ONSETUP.
      */
-    auier_t on_begin(const IElement* sender, const aui_event_ex<void*>* event ) override;
+    auier_t on_begin(const IElement* sender, const aui_event<void*>* event ) override;
 
     /**
      * @brief Polls the pin and updates internal state.
@@ -126,7 +126,7 @@ private:
 // ---------------------------------------------------------------------------
 
 template <uint8_t pin, uint8_t TPRESS , uint8_t TUPRESS, uint32_t TDOUBLE_CLICK_TIME >
-auier_t aui_basic_button<pin, TPRESS, TUPRESS, TDOUBLE_CLICK_TIME>::on_begin(const IElement* sender, const aui_event_ex<void*>* event ) {
+auier_t aui_basic_button<pin, TPRESS, TUPRESS, TDOUBLE_CLICK_TIME>::on_begin(const IElement* sender, const aui_event<void*>* event ) {
     base_type::on_begin(sender,  event );
     m_state.set_state(base_type::m_value);
     m_prev = m_state;

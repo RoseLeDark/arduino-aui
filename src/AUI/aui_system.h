@@ -21,10 +21,10 @@ namespace detail {
 #define AUI_MS_PER_TICK(hz)  (AUI_BASE_MS / (hz))
 
 #define eAuiSendEvent(payLoadType, sender, msg, destid, ValB) \
-auisystem.send_massage<aui_event_ex<payLoadType> >( (sender), (msg) , aui_event_ex<payLoadType>( (destid) , (ValB) ));
+auisystem.send_massage<aui_event<payLoadType> >( (sender), (msg) , aui_event<payLoadType>( (destid) , (ValB) ));
 
 #define sAuiSendEvent(payLoadType, sender, msg, destid) \
-auisystem.send_massage<aui_event_ex<payLoadType> >( (sender), (msg) , aui_event_ex<payLoadType>( (destid) , (nullptr) ));
+auisystem.send_massage<aui_event<payLoadType> >( (sender), (msg) , aui_event<payLoadType>( (destid) , (nullptr) ));
 
 /**
  * @class aui_system

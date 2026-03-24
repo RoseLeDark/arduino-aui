@@ -98,7 +98,7 @@ protected:
      *
      * Called automatically when the element receives MSG_ONSETUP.
      */
-    auier_t on_begin(const IElement* sender, const aui_event_ex<aui_idble_payload>* event) override {
+    auier_t on_begin(const IElement* sender, const aui_event<aui_idble_payload>* event) override {
         cli();
         TCCR1A = 0;
         TCCR1B = (1 << WGM12);
@@ -137,7 +137,7 @@ protected:
         if(this_type::m_intrPrtFlag == 1) {
             this_type::m_intrPrtFlag = 0;
 
-            auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_TIMER_INTER, aui_event_ex<aui_idble_payload>(TID, nullptr ));
+            auisystem.send_massage<aui_event<aui_idble_payload>>(&auisystem, MSG_TIMER_INTER, aui_event<aui_idble_payload>(TID, nullptr ));
 
             return AUI_OK;
         }

@@ -197,15 +197,15 @@ public:
          if(base_type::handle_message(e, msg, args, size) == 0 ) return 0;
 
         if(msg == MSG_GPIO_SWITCH && base_type::is_enable() == 0 ) {
-            return on_gpio_switch(e, static_cast<aui_event_ex<aui_idble_payload>*>(args));
+            return on_gpio_switch(e, static_cast<aui_event<aui_idble_payload>*>(args));
         }
         if(msg == MSG_GPIO_WRITE && base_type::is_enable() == 0 ) {
-            return on_gpio_write(e, static_cast<aui_event_ex<aui_idble_payload>*>(args) );
+            return on_gpio_write(e, static_cast<aui_event<aui_idble_payload>*>(args) );
         }
         if (msg == MSG_RESET ) { 
             base_type::set_enable(0);
             
-            return on_reset(e, static_cast<aui_event_ex<aui_idble_payload>*>(args)  ); 
+            return on_reset(e, static_cast<aui_event<aui_idble_payload>*>(args)  ); 
         }
         return 1;
     }
@@ -219,7 +219,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    auier_t on_begin(const IElement* sender, const aui_event_ex<aui_idble_payload>* event ) override { 
+    auier_t on_begin(const IElement* sender, const aui_event<aui_idble_payload>* event ) override { 
         
         pinMode(TPIN, OUTPUT);
         return AUI_OK; 
@@ -227,7 +227,7 @@ protected:
     /**
      * @brief Toggles the digital output state.
      */
-    virtual auier_t on_gpio_switch(const IElement* sender, aui_event_ex<aui_idble_payload>* event) { 
+    virtual auier_t on_gpio_switch(const IElement* sender, aui_event<aui_idble_payload>* event) { 
         m_value = !m_value;
         digitalWrite(TPIN, m_value);
         return AUI_OK; 
@@ -235,7 +235,7 @@ protected:
     /**
      * @brief Writes a new value to the pin.
      */
-    virtual auier_t on_gpio_write(const IElement* sender, aui_event_ex<aui_idble_payload>* event)  { 
+    virtual auier_t on_gpio_write(const IElement* sender, aui_event<aui_idble_payload>* event)  { 
         if(event->get_id() != TPIN) return 1;
         m_value = *event->get_as<value_type>();
 
@@ -245,17 +245,17 @@ protected:
     /**
      * @brief Re-applies the current state to the hardware pin.
      */
-    virtual auier_t on_reset(const IElement* sender, aui_event_ex<aui_idble_payload>* event)  { 
+    virtual auier_t on_reset(const IElement* sender, aui_event<aui_idble_payload>* event)  { 
         if(event->get_id() != TPIN) return 1; 
         digitalWrite(TPIN, m_value );
         return AUI_OK;
     }
     auier_t on_update(const IElement* sender, const uint64_t ticks) override {
         if(detail::aui_interrupt_pin<TPIN>::reset() == 1) {
-            //auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_INTERRUPT, aui_event_ex<aui_idble_payload>::make(nullptr, 0, TPIN));
+            //auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_INTERRUPT, aui_event<aui_idble_payload>::make(nullptr, 0, TPIN));
 
-            auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_INTERRUPT, 
-                aui_event_ex<aui_idble_payload>(TPIN, nullptr ));
+            auisystem.send_massage<aui_event<aui_idble_payload>>(&auisystem, MSG_INTERRUPT, 
+                aui_event<aui_idble_payload>(TPIN, nullptr ));
         }
         return AUI_OK;
     }
@@ -312,7 +312,7 @@ public:
         if(base_type::handle_message(e, msg, args, size) == 0 ) return 0;
 
         if(msg == MSG_GPIO_READ) {
-            return on_gpio_read(e, static_cast<aui_event_ex<aui_idble_payload>*>(args) );
+            return on_gpio_read(e, static_cast<aui_event<aui_idble_payload>*>(args) );
         }
         return 1;
     }
@@ -323,7 +323,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as INPUT.
      */
-    virtual auier_t on_begin(const IElement* sender, const aui_event_ex<aui_idble_payload>* event ) override { 
+    virtual auier_t on_begin(const IElement* sender, const aui_event<aui_idble_payload>* event ) override { 
         pinMode(TPIN, INPUT);
         m_value = digitalRead(TPIN);
         return AUI_OK;; 
@@ -331,7 +331,7 @@ protected:
     /**
      * @brief read the digital input state.
      */
-    virtual auier_t on_gpio_read(const IElement* sender, aui_event_ex<aui_idble_payload>* event) { 
+    virtual auier_t on_gpio_read(const IElement* sender, aui_event<aui_idble_payload>* event) { 
         if(event->get_id() != TID ) return 1;
 
         m_value = digitalRead(TPIN);
@@ -340,8 +340,8 @@ protected:
     }
     auier_t on_update(const IElement* sender, const uint64_t ticks) override {
         if(detail::aui_interrupt_pin<TPIN>::reset()  == 1) {
-            auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_INTERRUPT, 
-                aui_event_ex<aui_idble_payload>(TPIN, nullptr));
+            auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_INTERRUPT, 
+                aui_event<aui_idble_payload>(TPIN, nullptr));
         }
         return AUI_OK;
     }
@@ -394,7 +394,7 @@ public:
         if(base_type::handle_message(e, msg, args, size) == 0 ) return 0;
 
         if(msg == MSG_GPIO_READ) {
-            return on_gpio_read(e, static_cast<aui_event_ex<aui_idble_payload>*>(args) );
+            return on_gpio_read(e, static_cast<aui_event<aui_idble_payload>*>(args) );
         }
         return 1;
     }
@@ -405,7 +405,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as INPUT.
      */
-    virtual auier_t on_begin(const IElement* sender, const  aui_event_ex<aui_idble_payload>* event ) override { 
+    virtual auier_t on_begin(const IElement* sender, const  aui_event<aui_idble_payload>* event ) override { 
         pinMode(TPIN, INPUT_PULLUP);
         m_value = digitalRead(TPIN);
         return AUI_OK;; 
@@ -413,7 +413,7 @@ protected:
     /**
      * @brief read the digital input state.
      */
-    virtual auier_t on_gpio_read(const IElement* sender, aui_event_ex<aui_idble_payload>* event) { 
+    virtual auier_t on_gpio_read(const IElement* sender, aui_event<aui_idble_payload>* event) { 
         if(event->get_id() != TID ) return 1;
 
         m_value = digitalRead(TPIN);
@@ -422,7 +422,7 @@ protected:
     }
     auier_t on_update(const IElement* sender, const uint64_t ticks) override {
         if(detail::aui_interrupt_pin<TPIN>::reset()  == 1) {
-            auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_INTERRUPT, aui_event_ex<aui_idble_payload>(TPIN, nullptr) );
+            auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_INTERRUPT, aui_event<aui_idble_payload>(TPIN, nullptr) );
         }
         return AUI_OK;
     }
@@ -491,13 +491,13 @@ public:
          if(base_type::handle_message(e, msg, args, size) == 0 ) return AUI_OK;;
 
         if(msg == MSG_GPIO_SWITCH) {
-            return on_gpio_switch(e, static_cast<aui_event_ex<aui_idble_payload>*>(args));
+            return on_gpio_switch(e, static_cast<aui_event<aui_idble_payload>*>(args));
         }
         if(msg == MSG_GPIO_WRITE) {
-            return on_gpio_write(e, static_cast<aui_event_ex<aui_idble_payload>*>(args) );
+            return on_gpio_write(e, static_cast<aui_event<aui_idble_payload>*>(args) );
         }
         if (msg == MSG_RESET ) { 
-            return on_reset(e, static_cast<aui_event_ex<aui_idble_payload>*>(args)  ); 
+            return on_reset(e, static_cast<aui_event<aui_idble_payload>*>(args)  ); 
         }
         return 1;
     }
@@ -516,7 +516,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    auier_t on_begin(const IElement* sender,const  aui_event_ex<aui_idble_payload>* event ) override {  
+    auier_t on_begin(const IElement* sender,const  aui_event<aui_idble_payload>* event ) override {  
         pinMode(TPIN, OUTPUT);
 
         analogWriteResolution(detail::aui_gpio_value_type<TRESOLUTION>::resolution);
@@ -530,7 +530,7 @@ protected:
     /**
      * @brief Placeholder for switching behavior (not yet implemented).
      */
-    virtual auier_t on_gpio_switch(const IElement* sender, aui_event_ex<aui_idble_payload>* event) {
+    virtual auier_t on_gpio_switch(const IElement* sender, aui_event<aui_idble_payload>* event) {
         if (event->get_id() != TPIN)
             return 1;
 
@@ -546,7 +546,7 @@ protected:
     /**
      * @brief Writes a new analog value to the pin, with clamping.
      */
-    virtual auier_t on_gpio_write(const IElement* sender, aui_event_ex<aui_idble_payload>* event)  { 
+    virtual auier_t on_gpio_write(const IElement* sender, aui_event<aui_idble_payload>* event)  { 
         if(event->get_id() != TPIN) return 1;
         m_value = *event->get_as<value_type>();
 
@@ -558,7 +558,7 @@ protected:
     /**
      * @brief Re-applies the current analog value to the hardware pin.
      */
-    virtual auier_t on_reset(const IElement* sender, aui_event_ex<aui_idble_payload>* event)  { 
+    virtual auier_t on_reset(const IElement* sender, aui_event<aui_idble_payload>* event)  { 
         if(event->get_id() != TPIN) return 1; 
         if (m_value > (value_type)TRESOLUTION)
             m_value = (value_type)TRESOLUTION; 
@@ -569,7 +569,7 @@ protected:
 #if AUI_CONFIG_ANALOG_INTERRUPT == 1
     auier_t on_update(const IElement* sender, const uint64_t ticks) override {
         if(detail::aui_interrupt_pin<TPIN>::reset()  == 1) {
-            auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_INTERRUPT, aui_event_ex<aui_idble_payload>::make(nullptr, 0, TPIN));
+            auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_INTERRUPT, aui_event<aui_idble_payload>::make(nullptr, 0, TPIN));
         }
         return AUI_OK;
     }
@@ -618,7 +618,7 @@ public:
          if(base_type::handle_message(e, msg, args, size) == 0 ) return 0;
 
         if(msg == MSG_GPIO_READ) {
-            return on_gpio_read(e, static_cast<aui_event_ex<aui_idble_payload>*>(args) );
+            return on_gpio_read(e, static_cast<aui_event<aui_idble_payload>*>(args) );
         }
 
         return 1;
@@ -637,7 +637,7 @@ protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    auier_t on_begin(const IElement* sender, const  aui_event_ex<aui_idble_payload>* event ) override {  
+    auier_t on_begin(const IElement* sender, const  aui_event<aui_idble_payload>* event ) override {  
         pinMode(TPIN, INPUT);
 
         analogReadResolution(detail::aui_gpio_value_type<TRESOLUTION>::resolution);
@@ -653,7 +653,7 @@ protected:
     /**
      * @brief Writes a new analog value to the pin, with clamping.
      */
-    virtual auier_t on_gpio_read(const IElement* sender, aui_event_ex<aui_idble_payload>* event)  { 
+    virtual auier_t on_gpio_read(const IElement* sender, aui_event<aui_idble_payload>* event)  { 
         if(event->get_id() != TPIN) return 1;
 
         m_value = analogRead(TPIN);
@@ -668,7 +668,7 @@ protected:
 #if AUI_CONFIG_ANALOG_INTERRUPT == 1
     auier_t on_update(const IElement* sender, const uint64_t ticks) override {
         if(detail::aui_interrupt_pin<TPIN>::reset() == 1) {
-            auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_INTERRUPT, aui_event_ex<aui_idble_payload>::make(nullptr, 0, TPIN));
+            auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_INTERRUPT, aui_event<aui_idble_payload>::make(nullptr, 0, TPIN));
         }
         return AUI_OK;
     }
@@ -691,18 +691,18 @@ public:
         : base_type(value) { }
 
     void send_value(value_type value) {
-        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>( TPIN, &value) );
+        auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_GPIO_WRITE, aui_event<aui_idble_payload>( TPIN, &value) );
     }
     void send_on() {
         uint8_t value = 255;
-        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>( TPIN, &value) );
+        auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_GPIO_WRITE, aui_event<aui_idble_payload>( TPIN, &value) );
     }
 
     void send_off() {
         uint8_t value = 0;
-        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>( TPIN, &value) );
+        auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_GPIO_WRITE, aui_event<aui_idble_payload>( TPIN, &value) );
     }
     void send_switch() {
-        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_GPIO_SWITCH, aui_event_ex<aui_idble_payload>( TPIN, nullptr) );
+        auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_GPIO_SWITCH, aui_event<aui_idble_payload>( TPIN, nullptr) );
     }
 };

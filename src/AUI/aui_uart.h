@@ -81,14 +81,14 @@ protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    auier_t on_begin(const IElement* sender, const aui_event_ex<aui_idble_payload>* event ) override {  
+    auier_t on_begin(const IElement* sender, const aui_event<aui_idble_payload>* event ) override {  
         TSerial->begin(TBAUD, TConfig);
         return AUI_OK;; 
     }
 
-    virtual uint8_t on_write(const IElement* sender, const aui_event_ex<aui_uart_payload>* event);
+    virtual uint8_t on_write(const IElement* sender, const aui_event<aui_uart_payload>* event);
 
-    virtual uint8_t on_read_text(const IElement* sender, aui_event_ex<aui_uart_payload>* event) {
+    virtual uint8_t on_read_text(const IElement* sender, aui_event<aui_uart_payload>* event) {
         if(event->get_id() != TID) return 1;
 
         uint16_t readle = 0;
@@ -127,7 +127,7 @@ void aui_serial<TSerial, TID, TBAUD, TConfig>::on_serial_event() {
 }
 
 template <HardwareSerial* TSerial, uint8_t TID, uint32_t TBAUD , uint32_t TConfig >
-uint8_t aui_serial<TSerial, TID,TBAUD, TConfig>::on_write(const IElement* sender, const aui_event_ex<aui_uart_payload>* event) {
+uint8_t aui_serial<TSerial, TID,TBAUD, TConfig>::on_write(const IElement* sender, const aui_event<aui_uart_payload>* event) {
     if(event->get_id() != TID) return 1;
 
     if ( event->get_payload().loLevel == AUI_LOG_LEVEL_ERRORS && AUI_LOGLEVEL <= AUI_LOG_LEVEL_ERRORS) {
@@ -148,10 +148,10 @@ uint8_t aui_serial<TSerial, TID,TBAUD, TConfig>::handle_message(const IElement* 
     if(base_type::handle_message(sender, msg, arg, size) == 0 ) return AUI_OK;;
 
     if (msg == MSG_UART_WRITE) { 
-        return on_write(sender, static_cast<aui_event_ex<aui_uart_payload>* >(arg) );
+        return on_write(sender, static_cast<aui_event<aui_uart_payload>* >(arg) );
     }
     if(msg == MSG_UART_READ) {
-        return on_read_text(sender, static_cast<aui_event_ex<aui_uart_payload>* >(arg) );
+        return on_read_text(sender, static_cast<aui_event<aui_uart_payload>* >(arg) );
     }
 
     return 1;

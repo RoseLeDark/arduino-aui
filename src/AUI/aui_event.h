@@ -12,7 +12,7 @@
 #include "aui_messages.h"
 
 template <typename TPAYLOAD>
-class aui_event_ex {
+class aui_event {
 private:
     union {
         struct {
@@ -26,13 +26,13 @@ public:
     using value_type = TPAYLOAD;
     using reference = TPAYLOAD&;
 
-    aui_event_ex(value_type payload) 
+    aui_event(value_type payload) 
         : m_id(0), m_rArgs (payload)  { }
 
-    aui_event_ex(uint8_t id, void* args, uint16_t size )
+    aui_event(uint8_t id, void* args, uint16_t size )
         :  m_id(id), m_pRaw(args), m_sizeRaw(size) { }
 
-    aui_event_ex(uint8_t id, value_type payload) 
+    aui_event(uint8_t id, value_type payload) 
         : m_id(id), m_rArgs (payload) { }
 
     
@@ -46,7 +46,7 @@ public:
 };
 
 template <>
-class aui_event_ex<void*> {
+class aui_event<void*> {
 private:
     struct {
         uint16_t m_id;   ///< Identifier associated with the event
@@ -57,13 +57,13 @@ public:
     using value_type = void*;
     using reference = void*&;
 
-    aui_event_ex(value_type payload) 
+    aui_event(value_type payload) 
         : m_id(0), m_rArgs (payload)  { }
 
-    aui_event_ex(uint8_t id, void* args, uint16_t size )
+    aui_event(uint8_t id, void* args, uint16_t size )
         :  m_id(id), m_sizeRaw(size) { }
 
-    aui_event_ex(uint8_t id, value_type payload) 
+    aui_event(uint8_t id, value_type payload) 
         : m_id(id), m_rArgs (payload) { }
 
     

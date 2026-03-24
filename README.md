@@ -115,7 +115,7 @@ class led_switch_button
     : public aui_basic_button<2, HIGH, LOW, 250> 
 {
 public:
-    uint8_t on_click(const IElement* sender, aui_event_ex<aui_idble_payload>* event) override {
+    uint8_t on_click(const IElement* sender, aui_event<aui_idble_payload>* event) override {
         uint8_t led = 1;
         auisystem.send_message(this, MSG_LED_SWITCH, &led, sizeof(led));
         return AUI_OK;;

@@ -54,7 +54,7 @@ public:
      */
     virtual uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) {
         if (msg == MSG_ONSETUP) { 
-            return on_begin(sender, static_cast<aui_event_ex<aui_idble_payload>*>(arg) );  
+            return on_begin(sender, static_cast<aui_event<aui_idble_payload>*>(arg) );  
         }
         if (msg == MSG_ONLOOP && m_bEnable == 0) { 
             return on_update(sender, *static_cast<uint64_t*>(arg)  ); 
@@ -72,7 +72,7 @@ protected:
      * Called automatically when the element receives MSG_ONSETUP.
      * Derived classes override this to perform hardware or state initialization.
      */
-    virtual auier_t on_begin(const IElement* sender, const aui_event_ex<aui_idble_payload>* event) { return 0; }
+    virtual auier_t on_begin(const IElement* sender, const aui_event<aui_idble_payload>* event) { return 0; }
 
     /**
      * @brief Optional periodic update hook.
@@ -140,7 +140,7 @@ public:
         if(base_type::handle_message(sender, msg, arg, size) == AUI_OK) return AUI_OK;
 
         if(msg == MSG_PAINT && base_type::m_bEnable == 0) {
-            return on_paint(sender, static_cast<aui_event_ex<aui_idble_payload>*>(arg) );
+            return on_paint(sender, static_cast<aui_event<aui_idble_payload>*>(arg) );
         }
         return AUI_ERROR_NOTHANDLED;
     }
@@ -152,7 +152,7 @@ protected:
      * Called automatically when the element receives MSG_ONSETUP.
      * Derived classes override this to perform hardware or state initialization.
      */
-    virtual auier_t on_paint(const IElement* sender, aui_event_ex<aui_idble_payload>* event) { return 0; }
+    virtual auier_t on_paint(const IElement* sender, aui_event<aui_idble_payload>* event) { return 0; }
 
     
 };

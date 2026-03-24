@@ -103,15 +103,15 @@ public:
         if(base_type::handle_message(sender, msg, arg, size) == 0) return AUI_OK;;
 
         if (msg == MSG_I2C_WRITE && base_type::m_bEnable == 0) { 
-            return on_i2c_write(sender, &aui_event_ex<aui_idble_payload>::make(arg, size) );
+            return on_i2c_write(sender, &aui_event<aui_idble_payload>::make(arg, size) );
         }
         if (msg == MSG_I2C_READ  && base_type::m_bEnable == 0) {
-            return on_i2c_read(sender, &aui_event_ex<aui_idble_payload>::make(arg, size) );
+            return on_i2c_read(sender, &aui_event<aui_idble_payload>::make(arg, size) );
         }
         return 1;
     }
 protected:
-    auier_t on_i2c_write(const IElement* sender, aui_event_ex<aui_idble_payload>* event ) {
+    auier_t on_i2c_write(const IElement* sender, aui_event<aui_idble_payload>* event ) {
         if(event->get_id() != TID) return 1;
 
         uint16_t written = write(event->get_as<uint8_t*>(), event->get_size() );
@@ -120,7 +120,7 @@ protected:
         return AUI_OK;
     }
 
-    auier_t on_i2c_read(const IElement* sender, aui_event_ex<aui_idble_payload>* event ) {
+    auier_t on_i2c_read(const IElement* sender, aui_event<aui_idble_payload>* event ) {
         if(event->get_id() != TID) return 1;
 
         uint16_t readed = read(event->get_as<uint8_t*>(), event->get_size() );
@@ -166,7 +166,7 @@ protected:
      */
     auier_t on_update(const IElement* sender, const uint64_t ticks) override { 
         if(aui_i2c_slave<TID, TADDR>::ready_flag == 1) {
-            auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_I2C_INTRT, aui_event_ex<aui_idble_payload>::make(aui_i2c_slave<TID, TADDR>::m_buffer, TSIZE, m_destAddrs));
+            auisystem.send_massage<aui_event<aui_idble_payload>>(this, MSG_I2C_INTRT, aui_event<aui_idble_payload>::make(aui_i2c_slave<TID, TADDR>::m_buffer, TSIZE, m_destAddrs));
             aui_i2c_slave<TID, TADDR>::ready_flag = 0;
         }
         return AUI_OK;; 
