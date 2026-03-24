@@ -9,10 +9,7 @@ class led_switch_button : public aui_button <BUTTON_PIN, 250UL> {
 public:
   virtual auier_t on_click(const IElement* sender, const uint64_t tick ) override { 
  
-    //auisystem.send_massage<aui_event_ex<aui_idble_payload>>(this, MSG_GPIO_SWITCH, aui_event_ex<aui_idble_payload>::make(LED_AUID_ID));
-      auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_SWITCH, 
-               aui_event_ex<aui_idble_payload>(LED_AUID_ID, nullptr ));
-
+    sAuiSendEvent(aui_idble_payload, this, MSG_GPIO_SWITCH, LED_AUID_ID );
     return AUI_OK;;
   }
 };
