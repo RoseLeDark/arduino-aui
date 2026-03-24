@@ -34,7 +34,7 @@ Global messages include:
 
 Messages are delivered via:
 ```cpp
-on_MESSAGE(IElement* sender, aui_event* event)
+on_MESSAGE(IElement* sender, aui_event_ex<aui_idble_payload>* event)
 ```
 
 ### 1.3 Event Structures
@@ -42,7 +42,7 @@ Events carry additional data for messages.
 
 Core event types:
 - `aui_event` — generic event
-- `aui_idble_event` — event with element ID
+- `aui_event_ex<aui_idble_payload>` — event with element ID
 - `aui_uart_event` — UART read/write payload
 
 ## 2. Hardware Abstraction Layers

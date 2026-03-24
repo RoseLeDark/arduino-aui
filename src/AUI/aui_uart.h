@@ -65,7 +65,7 @@ public:
      * @param size   Size of the payload.
      * @return Always returns 0 for handled messages, 1 otherwise.
      */
-    uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) override;
+    auier_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) override;
 
     /**
      * @brief Reads all available UART bytes and forwards them as raw events.
@@ -81,20 +81,22 @@ protected:
     /**
      * @brief Initializes the hardware pin as OUTPUT.
      */
-    uint8_t on_begin(const IElement* sender, const aui_event* event ) override {  
+    auier_t on_begin(const IElement* sender, const aui_event_ex<aui_idble_payload>* event ) override {  
         TSerial->begin(TBAUD, TConfig);
-        return 0; 
+        return AUI_OK;; 
     }
 
-    virtual uint8_t on_write(const IElement* sender, const aui_uart_event* event);
+    virtual uint8_t on_write(const IElement* sender, const aui_event_ex<aui_uart_payload>* event);
 
-    virtual uint8_t on_read_text(const IElement* sender, aui_uart_event* event) {
+    virtual uint8_t on_read_text(const IElement* sender, aui_event_ex<aui_uart_payload>* event) {
         if(event->get_id() != TID) return 1;
 
         uint16_t readle = 0;
         String read = "";
         char r ;
-        while(event->get_string_lenght() < readle) {
+
+
+        while(event->get_payload().len < readle) {
             while(Serial.available() > 0);
 
             r = (char)Serial.read();
@@ -106,9 +108,9 @@ protected:
             readle++;
         }
 
-        event->set(read.begin(), read.length());
+        strcpy(event->get_payload().m_chText, read.begin());
 
-        return 0;
+        return AUI_OK;;
     }
 };
 
@@ -125,31 +127,31 @@ void aui_serial<TSerial, TID, TBAUD, TConfig>::on_serial_event() {
 }
 
 template <HardwareSerial* TSerial, uint8_t TID, uint32_t TBAUD , uint32_t TConfig >
-uint8_t aui_serial<TSerial, TID,TBAUD, TConfig>::on_write(const IElement* sender, const aui_uart_event* event) {
+uint8_t aui_serial<TSerial, TID,TBAUD, TConfig>::on_write(const IElement* sender, const aui_event_ex<aui_uart_payload>* event) {
     if(event->get_id() != TID) return 1;
 
-    if ( event->get_loglevel() == AUI_LOG_LEVEL_ERRORS && AUI_LOGLEVEL <= AUI_LOG_LEVEL_ERRORS) {
-        TSerial->println("[ " + String(millis()) + " ] error: " + event->get_as<void>());
-    } else if ( event->get_loglevel() == AUI_LOG_LEVEL_INFOS  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_INFOS) {
-        TSerial->println("[ " + String(millis()) + " ] info: " + event->get_as<void>());
-    } else if ( event->get_loglevel() == AUI_LOG_LEVEL_DEBUG  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_DEBUG) {
-        TSerial->println("[ " + String(millis()) + " ] debug: " + event->get_as<void>());
-    } else if ( event->get_loglevel() == AUI_LOG_LEVEL_VERBOSE  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_VERBOSE) {
-        TSerial->println("[ " + String(millis()) + " ] verbose: " + event->get_as<void>());
+    if ( event->get_payload().loLevel == AUI_LOG_LEVEL_ERRORS && AUI_LOGLEVEL <= AUI_LOG_LEVEL_ERRORS) {
+        TSerial->println("[ " + String(millis()) + " ] error: " + event->get_payload().m_chText );
+    } else if ( event->get_payload().loLevel == AUI_LOG_LEVEL_INFOS  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_INFOS) {
+        TSerial->println("[ " + String(millis()) + " ] info: " + event->get_payload().m_chText );
+    } else if ( event->get_payload().loLevel == AUI_LOG_LEVEL_DEBUG  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_DEBUG) {
+        TSerial->println("[ " + String(millis()) + " ] debug: " + event->get_payload().m_chText );
+    } else if ( event->get_payload().loLevel == AUI_LOG_LEVEL_VERBOSE  && AUI_LOGLEVEL <= AUI_LOG_LEVEL_VERBOSE) {
+        TSerial->println("[ " + String(millis()) + " ] verbose: " + event->get_payload().m_chText );
     }
 
-    return 0;
+    return AUI_OK;;
 }
 
 template <HardwareSerial* TSerial, uint8_t TID, uint32_t TBAUD , uint32_t TConfig >
 uint8_t aui_serial<TSerial, TID,TBAUD, TConfig>::handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size)  {
-    if(base_type::handle_message(sender, msg, arg, size) == 0 ) return 0;
+    if(base_type::handle_message(sender, msg, arg, size) == 0 ) return AUI_OK;;
 
     if (msg == MSG_UART_WRITE) { 
-        return on_write(sender, static_cast<aui_uart_event* >(arg) );
+        return on_write(sender, static_cast<aui_event_ex<aui_uart_payload>* >(arg) );
     }
     if(msg == MSG_UART_READ) {
-        return on_read_text(sender, static_cast<aui_uart_event* >(arg) );
+        return on_read_text(sender, static_cast<aui_event_ex<aui_uart_payload>* >(arg) );
     }
 
     return 1;

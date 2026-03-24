@@ -20,6 +20,11 @@ namespace detail {
 #define AUI_BASE_MS         1000ULL
 #define AUI_MS_PER_TICK(hz)  (AUI_BASE_MS / (hz))
 
+#define eAuiSendEvent(payLoadType, sender, msg, destid, ValB) \
+auisystem.send_massage<aui_event_ex<payLoadType> >( (sender), (msg) , aui_event_ex<payLoadType>( (destid) , (ValB) ));
+
+#define sAuiSendEvent(payLoadType, sender, msg, destid) \
+auisystem.send_massage<aui_event_ex<payLoadType> >( (sender), (msg) , aui_event_ex<payLoadType>( (destid) , (nullptr) ));
 
 /**
  * @class aui_system
@@ -56,7 +61,7 @@ public:
      * Initializes internal timing state. No setup is performed until
      * on_setup() is called.
      */
-    aui_system() : IElement(),  m_lastUpdate(0), m_msPerTick(16) { }
+    aui_system() : IElement (),  m_lastUpdate(0), m_msPerTick(16) { }
 
      /**
      * @brief Executes one system loop iteration.

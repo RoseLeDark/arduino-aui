@@ -4,47 +4,41 @@ aui_soft_lock::aui_soft_lock()  : m_ticksUntil(0), m_id(-1) {}
 
 // 0 = Lock gesetzt
 // 1 = Lock NICHT gesetzt
-uint8_t aui_soft_lock::try_lock(int16_t id, value_type ticks) {
-        // Interrupts/Timer dürfen keinen Lock setzen
-    if (aui_in_isr()) return 2;
+auier_t aui_soft_lock::try_lock(int16_t id, value_type ticks) {
+    if (aui_in_isr()) return AUI_ERROR_ISISR;
+    if(id < 0 || ticks == 0) return AUI_ERROR_PARAM;
+    if(m_id != id && m_id < 0) return AUI_ERROR_NOTALLOW;
 
+    auier_t _hr = AUI_OK;
     aui_tick_t now = detail::aui_global_get_ticks();
 
-    // Kein Lock aktiv → setzen
-    if (m_id < 0) {
-        m_id = id;
-        m_ticksUntil = now + ticks;
-        return 0;
-    }
-
-    // Lock aktiv, aber abgelaufen → zurücksetzen + Fehler
+    // Lock aktiv, aber abgelaufen DANN zurücksetzen + Fehler
     if (now >= m_ticksUntil) {
         m_id = -1;
         m_ticksUntil = 0;
-        return 1;
+        return AUI_ERROR_TIMEOUT;
+    } else {
+        m_id = id;
+        m_ticksUntil = now + ticks;
     }
 
-    // Lock aktiv und NICHT abgelaufen → Fehler
-    return 1;
+    return _hr;
 }
 
-// 1 = NICHT gesperrt
-// 0 = gesperrt
-uint8_t aui_soft_lock::is_locked() const {
-    if (m_id < 0) return 1;
+aui_bool_t aui_soft_lock::is_locked() const {
+    if (m_id < 0) return AUI_FALSE;
 
-    return (detail::aui_global_get_ticks() < m_ticksUntil) ? 0 : 1;
+    return (detail::aui_global_get_ticks() < m_ticksUntil) ? AUI_TRUE : AUI_FALSE;
 }
 
 // 0 = OK
 // 1 = Fehler (falscher Besitzer)
-uint8_t aui_soft_lock::unlock(int16_t id) {
-        // Interrupts/Timer dürfen keinen Lock aufheben
-    if (aui_in_isr()) return 2;
-
-    if (m_id != id) return 1; // falscher Besitzer
+auier_t aui_soft_lock::unlock(int16_t id) {
+    if (aui_in_isr()) return AUI_ERROR_ISISR;
+    if(id < 0) return AUI_ERROR_PARAM;
+    if(m_id != id && m_id < 0) return AUI_ERROR_NOTALLOW;
 
     m_id = -1;
     m_ticksUntil = 0;
-    return 0;
+    return AUI_OK;
 }

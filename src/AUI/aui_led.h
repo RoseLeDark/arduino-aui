@@ -34,15 +34,20 @@ public:
 
     void send_on() {
         uint8_t value = 1;
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TPIN) );
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_WRITE, 
+               aui_event_ex<aui_idble_payload>(TPIN, &value ));
     }
 
     void send_off() {
         uint8_t value = 0;
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TPIN) );
+
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_WRITE, 
+               aui_event_ex<aui_idble_payload>(TPIN, &value ));
+
     }
     void send_switch() {
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TPIN) );
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_SWITCH, 
+               aui_event_ex<aui_idble_payload>(TPIN, nullptr ));
     }
 };
 
@@ -78,27 +83,28 @@ public:
     }
 
     void send_color(aui_color_rgb color) {
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&color.r, 1, TRPIN) );
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&color.g, 1, TGPIN) );
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&color.b, 1, TBPIN) );
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>(TRPIN, &color.r ));
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>(TGPIN, &color.g ));
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>(TBPIN, &color.b ));
     }
 
     void send_value(value_type value) {
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TRPIN) );
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TGPIN) );
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_WRITE, aui_idble_event::make(&value, 1, TBPIN) );
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>(TRPIN, &value ));
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>(TGPIN, &value ));
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_WRITE, aui_event_ex<aui_idble_payload>(TBPIN, &value ));
     }
     void send_switch() {
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TRPIN) );
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TGPIN) );
-        auisystem.send_massage<aui_idble_event>(this, MSG_GPIO_SWITCH, aui_idble_event::make(TBPIN) );
+
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_SWITCH,  aui_event_ex<aui_idble_payload>(TRPIN, nullptr ));
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_SWITCH,  aui_event_ex<aui_idble_payload>(TGPIN, nullptr ));
+        auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_GPIO_SWITCH,   aui_event_ex<aui_idble_payload>(TBPIN, nullptr ));
     }
 protected:
     virtual uint8_t on_disable(const IElement* sender, const uint8_t ID) override {
         if(ID == TID) {
             send_off();
             base_type::set_enable(1); 
-            return 0;
+            return AUI_OK;;
         }
         return 1; 
     }
@@ -106,7 +112,7 @@ protected:
          if(ID == TID) {
             send_on();
             base_type::set_enable(0); 
-            return 0;
+            return AUI_OK;;
         }
         return 1;  
     }

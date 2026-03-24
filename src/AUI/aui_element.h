@@ -9,7 +9,8 @@
 
 #include <Arduino.h>
 #include <string.h>
-
+#include "aui_error.h"
+#include "aui_types.h"
 #include "aui_config.h"
 #include "aui_messages.h"
 #include "aui_event.h"
@@ -53,7 +54,7 @@ public:
      */
     virtual uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) {
         if (msg == MSG_ONSETUP) { 
-            return on_begin(sender, static_cast<aui_event*>(arg) );  
+            return on_begin(sender, static_cast<aui_event_ex<aui_idble_payload>*>(arg) );  
         }
         if (msg == MSG_ONLOOP && m_bEnable == 0) { 
             return on_update(sender, *static_cast<uint64_t*>(arg)  ); 
@@ -71,7 +72,7 @@ protected:
      * Called automatically when the element receives MSG_ONSETUP.
      * Derived classes override this to perform hardware or state initialization.
      */
-    virtual uint8_t on_begin(const IElement* sender, const aui_event* event) { return 0; }
+    virtual auier_t on_begin(const IElement* sender, const aui_event_ex<aui_idble_payload>* event) { return 0; }
 
     /**
      * @brief Optional periodic update hook.
@@ -79,7 +80,7 @@ protected:
      * Called automatically when the element receives MSG_ONLOOP.
      * Derived classes override this to implement polling or state updates.
      */
-    virtual uint8_t on_update(const IElement* sender, const uint64_t ticks) { return 0; }
+    virtual auier_t on_update(const IElement* sender, const uint64_t ticks) { return 0; }
 protected:
     uint8_t m_bEnable = 0 ; // 1 = false, 0 = true
 };
@@ -103,11 +104,11 @@ public:
 
     uint8_t getID() {return TID; }
 protected:
-    virtual uint8_t on_disable(const IElement* sender, const uint8_t ID)  {
+    virtual auier_t on_disable(const IElement* sender, const uint8_t ID)  {
         if(ID == TID) base_type::set_enable(1); 
         return 0; 
     }
-    virtual uint8_t on_enable(const IElement* sender, const uint8_t ID)  { 
+    virtual auier_t on_enable(const IElement* sender, const uint8_t ID)  { 
         if(ID == TID) base_type::set_enable(0);
         return 0;  
     }
@@ -135,12 +136,13 @@ class IVisualElement : public IElementWithID<TID> {
 public:
     using base_type = IElementWithID<TID>;
 
-    virtual uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) { 
-        if(base_type::handle_message(sender, msg, arg, size) == 0) return 0;
+    virtual auier_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) { 
+        if(base_type::handle_message(sender, msg, arg, size) == AUI_OK) return AUI_OK;
+
         if(msg == MSG_PAINT && base_type::m_bEnable == 0) {
-            return on_paint(sender, static_cast<aui_idble_event*>(arg) );
+            return on_paint(sender, static_cast<aui_event_ex<aui_idble_payload>*>(arg) );
         }
-        return 1;
+        return AUI_ERROR_NOTHANDLED;
     }
     
 protected:
@@ -150,7 +152,7 @@ protected:
      * Called automatically when the element receives MSG_ONSETUP.
      * Derived classes override this to perform hardware or state initialization.
      */
-    virtual uint8_t on_paint(const IElement* sender, aui_idble_event* event) { return 0; }
+    virtual auier_t on_paint(const IElement* sender, aui_event_ex<aui_idble_payload>* event) { return 0; }
 
     
 };

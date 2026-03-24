@@ -19,7 +19,7 @@ namespace detail {
 uint8_t aui_system::on_loop() {
     unsigned long now = millis();
     if (now - m_lastUpdate < m_msPerTick)
-        return 0;
+        return AUI_OK;
 
     m_lastUpdate = now;
 

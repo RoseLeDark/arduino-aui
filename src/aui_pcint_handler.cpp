@@ -95,7 +95,13 @@ static void aui_gpio_pcint_handle_group(uint8_t group) {
             if (id == 0xFF) continue; // nicht registriert
 
             // Event an AUI senden; auisystem ist angenommen vorhanden
-            auisystem.send_massage<aui_pcint_event>(&auisystem, MSG_PCINT_INTERRUPT, aui_pcint_event::make(id,  (current >> bit) & 1 ));
+            auisystem.send_massage<aui_event_ex<aui_pcint_payload>>(&auisystem, MSG_PCINT_INTERRUPT, 
+               aui_event_ex<aui_pcint_payload>(id, (current >> bit) & 1 ));
+
+
+
+
+            
         }
     }
 }

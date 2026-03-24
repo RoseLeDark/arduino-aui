@@ -98,7 +98,7 @@ protected:
      *
      * Called automatically when the element receives MSG_ONSETUP.
      */
-    uint8_t on_begin(const IElement* sender, const aui_event* event) override {
+    auier_t on_begin(const IElement* sender, const aui_event_ex<aui_idble_payload>* event) override {
         cli();
         TCCR1A = 0;
         TCCR1B = (1 << WGM12);
@@ -110,7 +110,7 @@ protected:
         TIMSK1 |= (1 << OCIE1A);
         sei();
 
-         return 0;
+         return AUI_OK;;
     }
 
     uint8_t on_disable(const IElement* sender, const uint8_t ID)  {
@@ -121,7 +121,7 @@ protected:
             TCCR1B  &= ~0x07;
             sei();
         }
-        return 0; 
+        return AUI_OK;; 
     }
     uint8_t on_enable(const IElement* sender, const uint8_t ID)  { 
         base_type::on_enable(sender, ID);
@@ -131,14 +131,15 @@ protected:
             TIMSK1 |= (1 << OCIE1A);   // Interrupt wieder aktivieren
             sei();
         }
-        return 0;  
+        return AUI_OK;;  
     }
     uint8_t on_update(const IElement* sender, const uint64_t ticks) { 
         if(this_type::m_intrPrtFlag == 1) {
             this_type::m_intrPrtFlag = 0;
 
-            auisystem.send_massage<aui_idble_event>(this, MSG_TIMER_INTER, aui_idble_event(TID, 1));
-            return 0;
+            auisystem.send_massage<aui_event_ex<aui_idble_payload>>(&auisystem, MSG_TIMER_INTER, aui_event_ex<aui_idble_payload>(TID, nullptr ));
+
+            return AUI_OK;
         }
         return 1;
     }

@@ -57,7 +57,7 @@ public:
      * @param size   Size of the payload.
      * @return Always returns 0.
      */
-    uint8_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size);
+    auier_t handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size);
 
     constexpr uint8_t get_max() const {return TMAX_ELEMENT; }
     constexpr uint8_t get_count() const {return m_count; }
@@ -91,9 +91,11 @@ uint8_t aui_board<TMAX_ELEMENT>::add_element(IElement* e) {
 }
 
 template <uint8_t TMAX_ELEMENT>
-uint8_t aui_board<TMAX_ELEMENT>::handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) {
-    for (uint8_t i = 0; i < m_count; i++)
+auier_t aui_board<TMAX_ELEMENT>::handle_message(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size) {
+    
+    for (uint8_t i = 0; i < m_count; i++) {
         m_elements[i]->handle_message(sender, msg, arg, size);
+    }
 
-    return 0;
+    return AUI_OK;
 }
