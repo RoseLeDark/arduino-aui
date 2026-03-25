@@ -1,6 +1,6 @@
 {
   "name": "AUI",
-  "version": "0.3.85",
+  "version": "0.3.86",
   "description": "A deterministic, event-driven embedded framework for Arduino. AUI provides a modular message-bus architecture for hardware elements such as buttons, LEDs, sensors, buses, and custom components. Inspired by UI design patterns, but built for real hardware: no loop(), no dynamic allocation, fully reproducible state machines.",
   "keywords": [
     "framework",

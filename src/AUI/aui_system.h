@@ -127,3 +127,6 @@ private:
  */
 extern aui_system auisystem;
 
+#if AUI_CONFIG_HIDE_LOOP == AUI_CONFIG_OFF
+extern auier_t messages(const IElement* sender, const uint8_t msg, void* arg, const uint16_t size);
+#endif

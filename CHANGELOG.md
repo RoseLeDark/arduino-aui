@@ -1,3 +1,30 @@
+## [0.3.86] – 2026‑03‑25
+
+### Added
+- Added `AUI_CONFIG_HIDE_LOOP`  
+  - enables full delegation of `setup()` and `loop()` to the AUI system  
+  - removes user‑side boilerplate and ensures deterministic loop execution
+
+- Added `aui_get_loop_millis()`  
+  - provides loop‑based millisecond timing derived from the configured tick duration  
+  - complements existing tick accessors with a unified millisecond interface
+
+- Added `aui_get_timer0_millis()`  
+  - exposes Arduino Timer0 millisecond timing without modifying the original ISR  
+  - ensures safe integration with AUI’s timer hook mechanism
+
+- Added `aui_get_timer1_millis()`  
+  - converts Timer1 tick frequency (`AUI_TIMER1_MS_PER_TICK`) into a millisecond time base  
+  - supports all compile‑time Timer1 frequency configurations
+
+- Added `aui_bits_group` infrastructure  
+  - compact bit‑mask grouping for element IDs and state flags  
+  - optimized for fast routing and state evaluation in the message system
+
+### Modified
+- Unified time‑base handling across Loop, Timer0, and Timer1 through consistent millisecond getter functions.
+
+
 ## [0.3.85] – 2026‑03‑24
 
 ### Added

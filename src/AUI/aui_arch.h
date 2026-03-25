@@ -1,5 +1,9 @@
 #pragma once
 
+#include "aui_config.h"
+
+
+
 // Keine C++17‑Abhängigkeit
 #define AUI_LOCKED(LOCK, ID, TICKS) \
     aui_lock_guard<aui_soft_lock, ID>  AUI_guard(LOCK, TICKS); \
@@ -23,3 +27,7 @@
     // Fallback: kein ISR bekannt → immer Loop
     #define aui_in_isr() 0
 #endif
+
+uint64_t aui_get_loop_millis();
+uint64_t aui_get_timer1_millis();
+uint64_t aui_get_timer0_millis();

@@ -17,6 +17,9 @@
 #define AUI_CONFIG_TIMER_50HZ       AUI_CONFIG_OFF
 #define AUI_CONFIG_TIMER_20HZ       AUI_CONFIG_OFF
 
+#ifndef AUI_CONFIG_HIDE_LOOP
+#define AUI_CONFIG_HIDE_LOOP        AUI_CONFIG_OFF
+#endif
 
 /// ------------------------------- DO NO EDIT AFTER THIS LINE -------------------------------
 #if defined(__AVR__)
@@ -35,7 +38,7 @@
     #define AUI_ISR_ATTR
 #endif
 
-#if AUI_PLATFORM_SAMD == 1 || AUI_PLATFORM_STM32 == 1 || AUI_PLATFORM_ESP32 == 1
+#if AUI_PLATFORM_SAMD == 1 | AUI_PLATFORM_STM32 == 1 | AUI_PLATFORM_ESP32 == 1
 #define AUI_CONFIG_EXT_INTERRUPT        AUI_CONFIG_ON
 #define AUI_CONFIG_ANALOG_INTERRUPT     AUI_CONFIG_ON
 #else 

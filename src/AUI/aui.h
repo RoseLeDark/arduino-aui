@@ -5,6 +5,7 @@
 // You may obtain a copy of the license at:
 // https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
+#include "aui_config.h"
 #include "aui_element.h"
 #include "aui_gpio.h"
 #include "aui_button.h"
